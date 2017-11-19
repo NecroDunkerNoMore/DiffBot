@@ -1,0 +1,30 @@
+# This file is an example security.properties that DiffBotConfiguration
+# pulls sensitve properties from. This repo's gitignore file has an entry for security.properties;
+# this is to try and prevent a security leak from happening (e.g., accidentally committing credentials).
+#
+# Directions for use:
+#
+# First, copy this file to:
+# src/main/resources/org/ndnm/diffbot/security.properties
+# (i.e., the same dir as this file)
+#
+# Next, replace all occurences of 'CHANGEME' to real values, and that's it. The Spring framework
+# will autowire these properties into the appropriate locations at runtime.
+
+# Reddit secrets
+reddit.username=CHANGEME
+reddit.password=CHANGEME
+reddit.clientId=CHANGEME
+reddit.clientSecret=CHANGEME
+reddit.redirectUrl=CHANGEME
+
+# The DB connection for the main application
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.username=CHANGEME
+jdbc.password=CHANGEME
+jdbc.url=CHANGEME
+
+# The connection used to create/bootstrap the DB
+jdbc.root.url=CHANGEME
+jdbc.root.username=CHANGEME
+jdbc.root.password=CHANGEME

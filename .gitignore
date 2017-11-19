@@ -20,3 +20,46 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# ignore eclipse
+.classpath
+.project
+.settings/
+
+# ignore intellij
+.metadata
+.idea
+*.iml
+
+# ignore netbeans
+nbproject/private/
+bbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+.nb-gradle/
+
+# ignore sublime text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+sftp-config.json
+
+# Ignore maven build dirs
+**/target/
+
+# Never committed, there is a stubbed security.properties.example of what this should be
+**/security.properties
+**/original.html
+**/revised.html
+
+# Genertated when building shaded project jar
+dependency-reduced-pom.xml
+

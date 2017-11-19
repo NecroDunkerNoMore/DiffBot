@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" strict="true">
+    <Properties>
+        <!-- Set logging level for all DiffBot packages, overrides root logger -->
+        <Property name="ndnm.logging.level" value="debug"/>
+    </Properties>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d [%p] %C: %m%n"/>
+        </Console>
+        <RollingFile name="logfile" fileName="${env:HOME}/logs/diffbot.log"
+                     filePattern="${env:HOME}/logs/diffbot/diffbot.log.%d{yyyy-MM-dd}"
+                     immediateFlush="true">
+            <PatternLayout pattern="%d [%p] %C: %m%n"/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.springframework.beans.factory.xml" level="error" additivity="false"/>
+        <Logger name="org.apache.commons.beanutils" level="error" additivity="false"/>
+        <Logger name="org.ndnm.diffbot" level="${ndnm.logging.level}" additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="logfile" />
+        </Logger>
+        <Root>
+            <!-- OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, ALL -->
+            <AppenderRef ref="console" level="info"/>
+            <AppenderRef ref="logfile" level="info"/>
+        </Root>
+    </Loggers>
+</log4j:configuration>
+
