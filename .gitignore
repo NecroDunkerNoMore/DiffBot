@@ -57,8 +57,6 @@ sftp-config.json
 
 # Never committed, there is a stubbed security.properties.example of what this should be
 **/security.properties
-**/original.html
-**/revised.html
 
 # Genertated when building shaded project jar
 dependency-reduced-pom.xml
