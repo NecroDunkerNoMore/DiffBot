@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.ndnm.diffbot.dao.UrlPollingTimeServiceDao;
-import org.ndnm.diffbot.model.DiffUrl;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.UrlPollingTime;
 import org.springframework.stereotype.Repository;
 

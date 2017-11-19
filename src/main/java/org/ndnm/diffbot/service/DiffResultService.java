@@ -2,7 +2,7 @@ package org.ndnm.diffbot.service;
 
 import java.math.BigInteger;
 
-import org.ndnm.diffbot.model.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffResult;
 
 public interface DiffResultService {
 

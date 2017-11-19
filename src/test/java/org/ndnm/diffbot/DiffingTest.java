@@ -9,15 +9,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ndnm.diffbot.model.diff.DiffDelta;
+import org.ndnm.diffbot.model.diff.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.util.DiffGenerator;
-
-import difflib.Delta;
 
 @SuppressWarnings("unchecked")
 public class DiffingTest {
-    private static List<Delta> changeDeltas;
-    private static List<Delta> insertedDeltas;
-    private static List<Delta> deletedDeltas;
+    private static DiffResult diffResult;
 
 
     @BeforeClass
@@ -32,10 +31,7 @@ public class DiffingTest {
             return;
         }
 
-        DiffGenerator differ = new DiffGenerator(originalFileLines, revisedFileLines);
-        changeDeltas = differ.getChangeDeltas();
-        insertedDeltas = differ.getInsertDeltas();
-        deletedDeltas = differ.getDeleteDeltas();
+        diffResult = DiffGenerator.getDiffResult(new DiffUrl(), originalFileLines, revisedFileLines);
     }
 
 
@@ -44,14 +40,15 @@ public class DiffingTest {
      */
     @Test
     public void testChangeDeltas() {
+        List<DiffDelta> changeDeltas = diffResult.getChangeDeltas();
         System.out.printf("**** %d CHANGES **************************************************************************************\n", changeDeltas.size());
         Assert.assertTrue("Did not get the 2 change deltas expected!" + changeDeltas.size(), changeDeltas.size() == 2);
 
-        for (Delta delta : changeDeltas) {
+        for (DiffDelta delta : changeDeltas) {
 
-            int linePosition = delta.getRevised().getPosition();
-            List<String> originalLines = delta.getOriginal().getLines();
-            List<String> revisedLines = delta.getRevised().getLines();
+            int linePosition = delta.getStartPosition();
+            List<String> originalLines = delta.getOriginalLines();
+            List<String> revisedLines = delta.getRevisedLines();
 
             Assert.assertTrue(originalLines.size() == 1 && revisedLines.size() == 1);
 
@@ -71,14 +68,15 @@ public class DiffingTest {
      */
     @Test
     public void testInsertDeltas() {
-        System.out.printf("**** %d INSERTIONS **************************************************************************************\n", insertedDeltas.size());
-        Assert.assertTrue("Did not get the 2 insert deltas expected!" + insertedDeltas.size(), insertedDeltas.size() == 2);
+        List<DiffDelta> insertDeltas = diffResult.getInsertDeltas();
+        System.out.printf("**** %d INSERTIONS **************************************************************************************\n", insertDeltas.size());
+        Assert.assertTrue("Did not get the 2 insert deltas expected!" + insertDeltas.size(), insertDeltas.size() == 2);
 
         // Expect there will only be new to print out
-        for (Delta delta : insertedDeltas) {
-            List<String> originalLines = delta.getOriginal().getLines();
-            List<String> revisedLines = delta.getRevised().getLines();
-            int linePosition = delta.getRevised().getPosition();
+        for (DiffDelta delta : insertDeltas) {
+            List<String> originalLines = delta.getOriginalLines();
+            List<String> revisedLines = delta.getRevisedLines();
+            int linePosition = delta.getStartPosition();
 
             Assert.assertTrue(originalLines.size() == 0 && revisedLines.size() > 0);
 
@@ -100,14 +98,15 @@ public class DiffingTest {
      */
     @Test
     public void testDeleteDeltas() {
-        System.out.printf("**** %d DELETIONS **************************************************************************************\n", deletedDeltas.size());
-        Assert.assertTrue("Did not get the 2 delete deltas expected!" + deletedDeltas.size(), deletedDeltas.size() == 2);
+        List<DiffDelta> deleteDeltas = diffResult.getDeleteDeltas();
+        System.out.printf("**** %d DELETIONS **************************************************************************************\n", deleteDeltas.size());
+        Assert.assertTrue("Did not get the 2 delete deltas expected!" + deleteDeltas.size(), deleteDeltas.size() == 2);
 
         // Expect that we show old to show what was deleted in new
-        for (Delta delta : deletedDeltas) {
-            List<String> originalLines = delta.getOriginal().getLines();
-            List<String> revisedLines = delta.getRevised().getLines();
-            int linePosition = delta.getRevised().getPosition();
+        for (DiffDelta delta : deleteDeltas) {
+            List<String> originalLines = delta.getOriginalLines();
+            List<String> revisedLines = delta.getRevisedLines();
+            int linePosition = delta.getStartPosition();
 
             Assert.assertTrue(originalLines.size() > 0 && revisedLines.size() == 0);
 

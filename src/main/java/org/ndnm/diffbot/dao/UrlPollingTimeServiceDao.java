@@ -2,7 +2,7 @@ package org.ndnm.diffbot.dao;
 
 import java.math.BigInteger;
 
-import org.ndnm.diffbot.model.DiffUrl;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.UrlPollingTime;
 
 public interface UrlPollingTimeServiceDao {

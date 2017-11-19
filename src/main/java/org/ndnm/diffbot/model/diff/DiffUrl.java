@@ -1,4 +1,4 @@
-package org.ndnm.diffbot.model;
+package org.ndnm.diffbot.model.diff;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -11,7 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "diffbot_url_t")
+@Table(name = "diff_url_t")
 public class DiffUrl implements Serializable {
     private static final long serialVersionUID = 5169553373729915231L;
 

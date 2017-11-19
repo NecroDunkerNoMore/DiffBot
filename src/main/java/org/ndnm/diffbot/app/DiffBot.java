@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.AuthPollingTime;
-import org.ndnm.diffbot.model.HtmlChangedEvent;
+import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.service.AuthTimeService;
 import org.ndnm.diffbot.service.DiffResultService;
 import org.ndnm.diffbot.service.HealthCheckableService;
@@ -172,9 +172,9 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private void deliverDiffResult(List<HtmlChangedEvent> htmlChangedEvents) {
-        LOG.info("Making reddit post for %d events...", htmlChangedEvents);
-        getRedditService().postDiffResults(htmlChangedEvents);
+    private void deliverDiffResult(List<DiffResult> diffResults) {
+        LOG.info("Making reddit post for %d events...", diffResults.size());
+        getRedditService().postDiffResults(diffResults);
         LOG.info("Completed reddit posting events.");
     }
 

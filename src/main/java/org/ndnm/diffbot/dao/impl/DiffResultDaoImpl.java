@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.ndnm.diffbot.dao.DiffResultDao;
-import org.ndnm.diffbot.model.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffResult;
 import org.springframework.stereotype.Repository;
 
 

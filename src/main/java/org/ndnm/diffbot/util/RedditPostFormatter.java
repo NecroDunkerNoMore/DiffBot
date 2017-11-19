@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.ndnm.diffbot.model.HtmlChangedEvent;
+import org.ndnm.diffbot.model.diff.DiffResult;
 import org.springframework.stereotype.Component;
 
 
@@ -18,13 +18,13 @@ public class RedditPostFormatter {
     private String diffBotVersion;
 
 
-    public String format(List<HtmlChangedEvent> htmlChangedEvents) {
+    public String format(List<DiffResult> diffResults) {
         StringBuilder sb = new StringBuilder();
         sb.append("**Diffed:**");
         sb.append(System.lineSeparator());
         sb.append(System.lineSeparator()); // reddit markdown needs 2 newlines to display one
 
-        for(HtmlChangedEvent event : htmlChangedEvents) {
+        for(DiffResult event : diffResults) {
 
             sb.append(String.format(LINK_LINE_SUCCESS, event.getDiffUrl(), event.getDiffUrl(), TimeUtils.formatGmt(event.getDateCaptured())));
 

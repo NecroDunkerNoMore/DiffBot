@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.dao.DiffResultDao;
-import org.ndnm.diffbot.model.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.service.DiffResultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
