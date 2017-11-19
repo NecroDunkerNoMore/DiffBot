@@ -4,14 +4,15 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
 import difflib.Delta;
 
-/*
- * Wrapper class for difflib.Delta
- */
+@Entity
+@Table(name = "diff_delta_t")
 public class DiffDelta {
     private BigInteger id;
-    private Delta delta;
     private DeltaType type;
     private List<DiffLine> originalLines;
     private List<DiffLine> revisedLines;
@@ -23,23 +24,23 @@ public class DiffDelta {
         //for orm
     }
 
+
     public DiffDelta(Delta delta) {
-        this.delta = delta;
-        this.type = getTypeFrom(delta);
-        this.startPosition = getStartPositionByType();
-        this.endPosition = getEndPositionByType();
+        this.type = initType(delta.getType());
+        this.startPosition = initStartPositionByType(delta);
+        this.endPosition = initEndPositionByType(delta);
 
         this.originalLines = new ArrayList<>();
-        initLines(originalLines, LineType.ORIGINAL);
+        initLines(delta, originalLines, LineType.ORIGINAL);
 
         this.revisedLines = new ArrayList<>();
-        initLines(revisedLines, LineType.REVISED);
+        initLines(delta, revisedLines, LineType.REVISED);
 
     }
 
 
     @SuppressWarnings("unchecked")
-    private void initLines(List<DiffLine> diffLines, LineType type) {
+    private void initLines(Delta delta, List<DiffLine> diffLines, LineType type) {
         List<String> linesToConvert;
         if (type == LineType.ORIGINAL) {
             linesToConvert = delta.getOriginal().getLines();
@@ -54,7 +55,7 @@ public class DiffDelta {
     }
 
 
-    private int getStartPositionByType() {
+    private int initStartPositionByType(Delta delta) {
         switch (this.type) {
             case CHANGE:
                 return delta.getOriginal().getPosition();
@@ -67,7 +68,8 @@ public class DiffDelta {
         }
     }
 
-    private int getEndPositionByType() {
+
+    private int initEndPositionByType(Delta delta) {
         switch (this.type) {
             case CHANGE:
                 return delta.getOriginal().last();
@@ -80,8 +82,9 @@ public class DiffDelta {
         }
     }
 
-    private DeltaType getTypeFrom(Delta delta) {
-        switch (delta.getType()){
+
+    private DeltaType initType(Delta.TYPE internalDeltaType) {
+        switch (internalDeltaType) {
             case CHANGE:
                 return DeltaType.CHANGE;
             case INSERT:
@@ -89,7 +92,7 @@ public class DiffDelta {
             case DELETE:
                 return DeltaType.DELETE;
             default:
-                throw new RuntimeException("Unrecognized enum value: " + delta.getType());
+                throw new RuntimeException("Unrecognized enum value: " + internalDeltaType);
         }
     }
 

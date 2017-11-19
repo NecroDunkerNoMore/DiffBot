@@ -3,8 +3,12 @@ CREATE DATABASE diffbot;
 USE diffbot;
 
 CREATE TABLE diff_result_t (
-  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  serviced_date DATETIME        NOT NULL,
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  diff_url_id         BIGINT UNSIGNED NOT NULL,
+  pre_html_captur_id  BIGINT UNSIGNED NOT NULL,
+  post_html_captur_id BIGINT UNSIGNED NOT NULL,
+  diff_patch_id       BIGINT UNSIGNED NOT NULL,
+  date_captured       DATETIME        NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -16,12 +20,35 @@ CREATE TABLE diff_url_t (
 );
 
 
+CREATE TABLE html_capture_t (
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  diff_url_id   BIGINT UNSIGNED NOT NULL,
+  date_captured DATETIME        NOT NULL,
+  raw_html      TEXT,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE diff_patch_t (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  source_url TEXT,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE diff_delta_t (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  source_url TEXT,
+  PRIMARY KEY (id)
+);
+
+
 CREATE TABLE reddit_user_t (
   id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   username         VARCHAR(128)    NOT NULL,
   date_created     DATETIME        NOT NULL,
   blacklist_reason TEXT,
-  is_blacklisted   BOOLEAN NOT NULL DEFAULT FALSE,
+  is_blacklisted   BOOLEAN         NOT NULL DEFAULT FALSE,
   PRIMARY KEY (id)
 );
 CREATE INDEX username

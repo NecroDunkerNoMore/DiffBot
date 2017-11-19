@@ -15,7 +15,7 @@ import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.util.DiffGenerator;
 
-@SuppressWarnings("unchecked")
+
 public class DiffingTest {
     private static DiffResult diffResult;
 
@@ -90,7 +90,7 @@ public class DiffingTest {
                 System.out.printf("%s\n", line.toString().trim());
             }//for
         }//for
-        System.out.println();
+        System.out.printf("\n");
     }
 
 

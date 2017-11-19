@@ -5,7 +5,11 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.ndnm.diffbot.model.HtmlCapture;
@@ -42,6 +46,30 @@ public class DiffResult implements Serializable {
     }
 
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    public BigInteger getId() {
+        return id;
+    }
+
+
+    public void setId(BigInteger id) {
+        this.id = id;
+    }
+
+
+    @Column(name = "date_captured")
+    public Date getDateCaptured() {
+        return dateCaptured;
+    }
+
+
+    public void setDateCaptured(Date dateCaptured) {
+        this.dateCaptured = dateCaptured;
+    }
+
+
     public List<DiffDelta> getChangeDeltas() {
         return diffPatch.getChangeDeltas();
     }
@@ -64,16 +92,6 @@ public class DiffResult implements Serializable {
 
     public void setDiffUrl(DiffUrl diffUrl) {
         this.diffUrl = diffUrl;
-    }
-
-
-    public Date getDateCaptured() {
-        return dateCaptured;
-    }
-
-
-    public void setDateCaptured(Date dateCaptured) {
-        this.dateCaptured = dateCaptured;
     }
 
 
@@ -104,16 +122,6 @@ public class DiffResult implements Serializable {
 
     public void setDiffPatch(DiffPatch diffPatch) {
         this.diffPatch = diffPatch;
-    }
-
-
-    public BigInteger getId() {
-        return id;
-    }
-
-
-    public void setId(BigInteger id) {
-        this.id = id;
     }
 
 }
