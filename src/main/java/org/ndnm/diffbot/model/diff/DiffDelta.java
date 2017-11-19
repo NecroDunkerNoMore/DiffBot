@@ -1,6 +1,7 @@
 package org.ndnm.diffbot.model.diff;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import difflib.Delta;
@@ -12,6 +13,8 @@ public class DiffDelta {
     private BigInteger id;
     private Delta delta;
     private DeltaType type;
+    private List<DiffLine> originalLines;
+    private List<DiffLine> revisedLines;
     private int startPosition;
     private int endPosition;
 
@@ -25,6 +28,29 @@ public class DiffDelta {
         this.type = getTypeFrom(delta);
         this.startPosition = getStartPositionByType();
         this.endPosition = getEndPositionByType();
+
+        this.originalLines = new ArrayList<>();
+        initLines(originalLines, LineType.ORIGINAL);
+
+        this.revisedLines = new ArrayList<>();
+        initLines(revisedLines, LineType.REVISED);
+
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private void initLines(List<DiffLine> diffLines, LineType type) {
+        List<String> linesToConvert;
+        if (type == LineType.ORIGINAL) {
+            linesToConvert = delta.getOriginal().getLines();
+        } else {
+            linesToConvert = delta.getRevised().getLines();
+        }
+
+        for (String line : linesToConvert) {
+            DiffLine diffLine = new DiffLine(line, type);
+            diffLines.add(diffLine);
+        }
     }
 
 
@@ -107,14 +133,14 @@ public class DiffDelta {
         this.endPosition = endPosition;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<String> getOriginalLines() {
-        return delta.getOriginal().getLines();
+
+    public List<DiffLine> getOriginalLines() {
+        return originalLines;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<String> getRevisedLines() {
-        return delta.getRevised().getLines();
+
+    public List<DiffLine> getRevisedLines() {
+        return revisedLines;
     }
 
 }
