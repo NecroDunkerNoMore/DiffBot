@@ -39,6 +39,7 @@ public class HtmlSnapshot implements Serializable {
 
     public HtmlSnapshot(DiffUrl diffUrl, String rawHtml, CaptureType captureType) {
         this.diffUrl = diffUrl;
+        this.diffUrl.setHtmlSnapshot(this);
         this.rawHtml = rawHtml;
         this.dateCaptured = Calendar.getInstance().getTime();
         this.captureType = captureType;
