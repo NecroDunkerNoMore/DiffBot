@@ -20,7 +20,7 @@ import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 
 @Entity
-@Table(name = "html_capture_t")
+@Table(name = "html_snapshot_t")
 public class HtmlSnapshot implements Serializable {
     private static final long serialVersionUID = 8530872380652605568L;
 

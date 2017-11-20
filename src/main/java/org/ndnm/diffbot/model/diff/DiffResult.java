@@ -153,6 +153,11 @@ public class DiffResult implements Serializable {
         this.diffPatch = diffPatch;
     }
 
+
+    /*
+     * All HtmlSnapshot's under a DiffResult should have the same DiffUrl, so
+     * go with the first one found.
+     */
     public DiffUrl getDiffUrl() {
         for (HtmlSnapshot htmlSnapshot : getHtmlSnapshots()) {
             if (htmlSnapshot.getDiffUrl() != null) {
