@@ -30,7 +30,7 @@ public class DiffPatch implements Serializable {
     private BigInteger id;
     private Date dateCaptured;
     private List<DiffDelta> diffDeltas;
-    private DiffResult diffResult;//parent for orm
+    private DiffResult diffResult;//ORM parent
 
     @Transient
     private List<DiffDelta> changeDeltas;
@@ -41,7 +41,7 @@ public class DiffPatch implements Serializable {
 
 
     public DiffPatch() {
-        //for orm
+        //For ORM
     }
 
 
@@ -88,20 +88,25 @@ public class DiffPatch implements Serializable {
     }
 
 
-    public void addDiffDeltas(List<DiffDelta> diffDeltas) {
-        if (diffDeltas == null) {
-            diffDeltas = new ArrayList<>();
+    /*
+     * ORM requires a reference back to the parent object, we are the parent here. This
+     * is also enforced by DB constraints w/ a FK from DiffDelta to DiffPatch.
+     */
+    private void registerDiffDeltas(List<DiffDelta> diffDeltas) {
+        if (this.diffDeltas == null) {
+            this.diffDeltas = new ArrayList<>();
         }
 
         for (DiffDelta diffDelta : diffDeltas) {
             diffDelta.setDiffPatch(this);
+            this.diffDeltas.add(diffDelta);
         }
     }
 
 
     public List<DiffDelta> getChangeDeltas() {
         if (changeDeltas == null) {
-            initDeltasByType(getDiffDeltas());
+            initDeltaListsByType(getDiffDeltas());
         }
         return changeDeltas;
     }
@@ -114,7 +119,7 @@ public class DiffPatch implements Serializable {
 
     public List<DiffDelta> getInsertDeltas() {
         if (insertDeltas == null) {
-            initDeltasByType(getDiffDeltas());
+            initDeltaListsByType(getDiffDeltas());
         }
         return insertDeltas;
     }
@@ -127,7 +132,7 @@ public class DiffPatch implements Serializable {
 
     public List<DiffDelta> getDeleteDeltas() {
         if (deleteDeltas == null) {
-            initDeltasByType(diffDeltas);
+            initDeltaListsByType(diffDeltas);
         }
         return deleteDeltas;
     }
@@ -150,16 +155,16 @@ public class DiffPatch implements Serializable {
 
     private void initLists(List<Delta> deltas) {
         List<DiffDelta> allDiffDeltas = convertDeltasToDiffDeltas(deltas);
-        initDeltasByType(allDiffDeltas);
-        addDiffDeltas(allDiffDeltas);//Register for ORM
+        registerDiffDeltas(allDiffDeltas);//Register for ORM
+        initDeltaListsByType(allDiffDeltas);
     }
 
 
-    @SuppressWarnings("unchecked")//patch.getDeltas()
+    @SuppressWarnings("unchecked")//diffDeltas.add(diffDelta)
     private List<DiffDelta> convertDeltasToDiffDeltas(List deltas) {
         List<DiffDelta> diffDeltas = new ArrayList<>();
-
         List<Delta> castDeltas = new ArrayList<>();
+
         castDeltas.addAll(deltas);
         for (Delta delta : castDeltas) {
             DiffDelta diffDelta = new DiffDelta(delta);
@@ -170,7 +175,7 @@ public class DiffPatch implements Serializable {
     }
 
 
-    private void initDeltasByType(List<DiffDelta> diffDeltas) {
+    private void initDeltaListsByType(List<DiffDelta> diffDeltas) {
         this.changeDeltas = new ArrayList<>();
         this.insertDeltas = new ArrayList<>();
         this.deleteDeltas = new ArrayList<>();

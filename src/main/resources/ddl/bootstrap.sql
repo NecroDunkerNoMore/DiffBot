@@ -5,8 +5,6 @@ USE diffbot;
 CREATE TABLE diff_result_t (
   id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_url_id         BIGINT UNSIGNED NOT NULL,
-  pre_html_captur_id  BIGINT UNSIGNED NOT NULL,
-  post_html_captur_id BIGINT UNSIGNED NOT NULL,
   diff_patch_id       BIGINT UNSIGNED NOT NULL,
   date_captured       DATETIME        NOT NULL,
   PRIMARY KEY (id)
