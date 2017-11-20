@@ -1,33 +1,43 @@
 package org.ndnm.diffbot.model.diff;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import difflib.Delta;
 import difflib.Patch;
 
 @Entity
 @Table(name = "diff_patch_t")
-public class DiffPatch {
+public class DiffPatch implements Serializable {
+    private static final long serialVersionUID = 1180167484368589988L;
+
     private BigInteger id;
     private Date dateCaptured;
+    private List<DiffDelta> diffDeltas;
+    private DiffResult diffResult;//parent for orm
+
+    @Transient
     private List<DiffDelta> changeDeltas;
+    @Transient
     private List<DiffDelta> insertDeltas;
+    @Transient
     private List<DiffDelta> deleteDeltas;
-
-
-    private DiffResult parentDiffResult;
 
 
     public DiffPatch() {
@@ -39,18 +49,6 @@ public class DiffPatch {
     public DiffPatch(Patch patch, Date dateCaptured) {
         this.dateCaptured = dateCaptured;
         initLists(patch.getDeltas());
-    }
-
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "date_captured")
-    public Date getDateCaptured() {
-        return dateCaptured;
-    }
-
-
-    public void setDateCaptured(Date dateCaptured) {
-        this.dateCaptured = dateCaptured;
     }
 
 
@@ -67,26 +65,93 @@ public class DiffPatch {
     }
 
 
-    private void separateDeltasByType(List<DiffDelta> diffDeltas) {
-        this.changeDeltas = new ArrayList<>();
-        this.insertDeltas = new ArrayList<>();
-        this.deleteDeltas = new ArrayList<>();
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "date_captured")
+    public Date getDateCaptured() {
+        return dateCaptured;
+    }
+
+
+    public void setDateCaptured(Date dateCaptured) {
+        this.dateCaptured = dateCaptured;
+    }
+
+
+    @OneToMany(targetEntity = DiffDelta.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffPatch")
+    public List<DiffDelta> getDiffDeltas() {
+        return diffDeltas;
+    }
+
+
+    public void setDiffDeltas(List<DiffDelta> diffDeltas) {
+        this.diffDeltas = diffDeltas;
+    }
+
+
+    public void addDiffDeltas(List<DiffDelta> diffDeltas) {
+        if (diffDeltas == null) {
+            diffDeltas = new ArrayList<>();
+        }
 
         for (DiffDelta diffDelta : diffDeltas) {
-            switch (diffDelta.getType()) {
-                case CHANGE:
-                    this.changeDeltas.add(diffDelta);
-                    break;
-                case INSERT:
-                    this.insertDeltas.add(diffDelta);
-                    break;
-                case DELETE:
-                    this.deleteDeltas.add(diffDelta);
-                    break;
-                default:
-                    throw new RuntimeException("Unrecognized enum type: " + diffDelta.getType());
-            }//switch
-        }//for
+            diffDelta.setDiffPatch(this);
+        }
+    }
+
+
+    public List<DiffDelta> getChangeDeltas() {
+        if (changeDeltas == null) {
+            initDeltasByType(getDiffDeltas());
+        }
+        return changeDeltas;
+    }
+
+
+    public void setChangeDeltas(List<DiffDelta> changeDeltas) {
+        this.changeDeltas = changeDeltas;
+    }
+
+
+    public List<DiffDelta> getInsertDeltas() {
+        if (insertDeltas == null) {
+            initDeltasByType(getDiffDeltas());
+        }
+        return insertDeltas;
+    }
+
+
+    public void setInsertDeltas(List<DiffDelta> insertDeltas) {
+        this.insertDeltas = insertDeltas;
+    }
+
+
+    public List<DiffDelta> getDeleteDeltas() {
+        if (deleteDeltas == null) {
+            initDeltasByType(diffDeltas);
+        }
+        return deleteDeltas;
+    }
+
+
+    public void setDeleteDeltas(List<DiffDelta> deleteDeltas) {
+        this.deleteDeltas = deleteDeltas;
+    }
+
+
+    public DiffResult getDiffResult() {
+        return diffResult;
+    }
+
+
+    public void setDiffResult(DiffResult diffResult) {
+        this.diffResult = diffResult;
+    }
+
+
+    private void initLists(List<Delta> deltas) {
+        List<DiffDelta> allDiffDeltas = convertDeltasToDiffDeltas(deltas);
+        initDeltasByType(allDiffDeltas);
+        addDiffDeltas(allDiffDeltas);//Register for ORM
     }
 
 
@@ -105,49 +170,26 @@ public class DiffPatch {
     }
 
 
-    private void initLists(List<Delta> deltas) {
-        List<DiffDelta> allDiffDeltas = convertDeltasToDiffDeltas(deltas);
-        separateDeltasByType(allDiffDeltas);
+    private void initDeltasByType(List<DiffDelta> diffDeltas) {
+        this.changeDeltas = new ArrayList<>();
+        this.insertDeltas = new ArrayList<>();
+        this.deleteDeltas = new ArrayList<>();
 
+        for (DiffDelta diffDelta : diffDeltas) {
+            switch (diffDelta.getDeltaType()) {
+                case CHANGE:
+                    this.changeDeltas.add(diffDelta);
+                    break;
+                case INSERT:
+                    this.insertDeltas.add(diffDelta);
+                    break;
+                case DELETE:
+                    this.deleteDeltas.add(diffDelta);
+                    break;
+                default:
+                    throw new RuntimeException("Unrecognized enum type: " + diffDelta.getDeltaType());
+            }//switch
+        }//for
     }
 
-
-    public List<DiffDelta> getChangeDeltas() {
-        return changeDeltas;
-    }
-
-
-    public void setChangeDeltas(List<DiffDelta> changeDeltas) {
-        this.changeDeltas = changeDeltas;
-    }
-
-
-    public List<DiffDelta> getInsertDeltas() {
-        return insertDeltas;
-    }
-
-
-    public void setInsertDeltas(List<DiffDelta> insertDeltas) {
-        this.insertDeltas = insertDeltas;
-    }
-
-
-    public List<DiffDelta> getDeleteDeltas() {
-        return deleteDeltas;
-    }
-
-
-    public void setDeleteDeltas(List<DiffDelta> deleteDeltas) {
-        this.deleteDeltas = deleteDeltas;
-    }
-
-
-    public DiffResult getParentDiffResult() {
-        return parentDiffResult;
-    }
-
-
-    public void setParentDiffResult(DiffResult parentDiffResult) {
-        this.parentDiffResult = parentDiffResult;
-    }
 }

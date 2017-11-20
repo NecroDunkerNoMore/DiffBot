@@ -30,7 +30,7 @@ import net.dean.jraw.http.oauth.Credentials;
 @Configuration
 @EnableTransactionManagement
 @PropertySource(value = {"classpath:org/ndnm/diffbot/diffbot.properties", "classpath:org/ndnm/diffbot/security.properties"})
-@ComponentScan({"org.ndnm.diffbot.model", "org.ndnm.diffbot.service.impl", "org.ndnm.diffbot.dao.impl",
+@ComponentScan({"org.ndnm.diffbot.model", "org.ndnm.diffbot.model.diff", "org.ndnm.diffbot.service.impl", "org.ndnm.diffbot.dao.impl",
         "org.ndnm.diffbot.spring", "org.ndnm.diffbot.app", "org.ndnm.diffbot.util"})
 public class DiffBotConfiguration {
     private final Environment environment;
@@ -69,7 +69,7 @@ public class DiffBotConfiguration {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws NamingException {
         LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
         factoryBean.setDataSource(dataSource());
-        factoryBean.setPackagesToScan("org.ndnm.diffbot.model", "org.ndnm.diffbot.service.impl", "org.ndnm.diffbot.dao.impl",
+        factoryBean.setPackagesToScan("org.ndnm.diffbot.model", "org.ndnm.diffbot.model.diff", "org.ndnm.diffbot.service.impl", "org.ndnm.diffbot.dao.impl",
                 "org.ndnm.diffbot.spring", "org.ndnm.diffbot.app", "org.ndnm.diffbot.util");
         factoryBean.setJpaVendorAdapter(jpaVendorAdapter());
         factoryBean.setJpaProperties(jpaProperties());

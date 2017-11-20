@@ -12,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.ndnm.diffbot.model.CaptureType;
 import org.ndnm.diffbot.model.HtmlCapture;
 
 import difflib.Patch;
@@ -24,6 +25,7 @@ public class DiffResult implements Serializable {
     private BigInteger id;
     private DiffUrl diffUrl;
     private Date dateCaptured;
+    private List<HtmlCapture> htmlCaptures;
     private HtmlCapture preEventHtmlCapture;
     private HtmlCapture postEventHtmlCapture;
     private DiffPatch diffPatch;
@@ -34,15 +36,20 @@ public class DiffResult implements Serializable {
     }
 
 
-    public DiffResult(DiffUrl diffUrl, Patch patch, Date dateCaptured) {
-        this(diffUrl, new DiffPatch(patch, dateCaptured), dateCaptured);
+    public DiffResult(DiffUrl diffUrl, Patch patch, List<HtmlCapture> htmlCaptures, Date dateCaptured) {
+        this(diffUrl, new DiffPatch(patch, dateCaptured), htmlCaptures, dateCaptured);
     }
 
 
-    public DiffResult(DiffUrl diffUrl, DiffPatch diffPatch, Date dateCaptured) {
+    public DiffResult(DiffUrl diffUrl, DiffPatch diffPatch, List<HtmlCapture> htmlCaptures, Date dateCaptured) {
         this.diffUrl = diffUrl;
         this.diffPatch = diffPatch;
+        this.diffPatch.setDiffResult(this);
         this.dateCaptured = dateCaptured;
+        this.htmlCaptures = htmlCaptures;
+        for (HtmlCapture htmlCapture : htmlCaptures) {
+            htmlCapture.setDiffResult(this);
+        }
     }
 
 
@@ -96,6 +103,9 @@ public class DiffResult implements Serializable {
 
 
     public HtmlCapture getPreEventHtmlCapture() {
+        if (preEventHtmlCapture == null) {
+            preEventHtmlCapture = getHtmlCaptureByType(CaptureType.PRE_EVENT);
+        }
         return preEventHtmlCapture;
     }
 
@@ -112,6 +122,27 @@ public class DiffResult implements Serializable {
 
     public void setPostEventHtmlCapture(HtmlCapture postEventHtmlCapture) {
         this.postEventHtmlCapture = postEventHtmlCapture;
+    }
+
+
+    private HtmlCapture getHtmlCaptureByType(CaptureType captureType) {
+        for (HtmlCapture htmlCapture : getHtmlCaptures()) {
+            if (htmlCapture.getCaptureType() == captureType) {
+                return htmlCapture;
+            }
+        }
+
+        return null;
+    }
+
+
+    public List<HtmlCapture> getHtmlCaptures() {
+        return htmlCaptures;
+    }
+
+
+    public void setHtmlCaptures(List<HtmlCapture> htmlCaptures) {
+        this.htmlCaptures = htmlCaptures;
     }
 
 

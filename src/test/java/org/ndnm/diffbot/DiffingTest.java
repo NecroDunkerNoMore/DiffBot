@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -22,17 +21,17 @@ public class DiffingTest {
 
     @BeforeClass
     public static void setup() {
-        List<String> originalFileLines;
-        List<String> revisedFileLines;
+        String originalFileAsString;
+        String revisedFileAsString;
         try {
-            originalFileLines = Files.readAllLines(Paths.get("src/test/resources/raw_data/original.html"), Charsets.UTF_8);
-            revisedFileLines = Files.readAllLines(Paths.get("src/test/resources/raw_data/revised.html"), Charsets.UTF_8);
+            originalFileAsString = new String(Files.readAllBytes(Paths.get("src/test/resources/raw_data/original.html")));
+            revisedFileAsString = new String(Files.readAllBytes(Paths.get("src/test/resources/raw_data/revised.html")));
         } catch (Exception e) {
             Assert.fail("Could not load test files!: " + e.getMessage());
             return;
         }
 
-        diffResult = DiffGenerator.getDiffResult(new DiffUrl(), originalFileLines, revisedFileLines);
+        diffResult = DiffGenerator.getDiffResult(new DiffUrl(), originalFileAsString, revisedFileAsString);
     }
 
 
