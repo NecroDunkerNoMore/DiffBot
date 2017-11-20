@@ -14,16 +14,16 @@ import difflib.DiffUtils;
 import difflib.Patch;
 
 public class DiffGenerator {
+    private static final String MULTI_NEWLINE_REGEX = "\\R+";
 
     public static DiffResult getDiffResult(DiffUrl diffUrl, String originalPageAsString, String revisedPageAsString) {
-        List<String> originalFileLines = Arrays.asList(originalPageAsString.split("\\R+"));
-        List<String> revisedFileLines = Arrays.asList(revisedPageAsString.split("\\R+"));
+        List<String> originalFileLines = Arrays.asList(originalPageAsString.split(MULTI_NEWLINE_REGEX));
+        List<String> revisedFileLines = Arrays.asList(revisedPageAsString.split(MULTI_NEWLINE_REGEX));
 
         Patch patch = DiffUtils.diff(originalFileLines, revisedFileLines);
         List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl, originalPageAsString, revisedPageAsString);
 
         return new DiffResult(patch, htmlSnapshots, Calendar.getInstance().getTime());
-
     }
 
 
