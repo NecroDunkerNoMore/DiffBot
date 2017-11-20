@@ -11,9 +11,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import org.ndnm.diffbot.model.CaptureType;
-import org.ndnm.diffbot.model.HtmlCapture;
+import org.ndnm.diffbot.model.HtmlSnapshot;
 
 import difflib.Patch;
 
@@ -23,12 +26,14 @@ public class DiffResult implements Serializable {
     private static final long serialVersionUID = 4260302707444143426L;
 
     private BigInteger id;
-    private DiffUrl diffUrl;
     private Date dateCaptured;
-    private List<HtmlCapture> htmlCaptures;
-    private HtmlCapture preEventHtmlCapture;
-    private HtmlCapture postEventHtmlCapture;
     private DiffPatch diffPatch;
+    private List<HtmlSnapshot> htmlSnapshots;
+
+    @Transient
+    private HtmlSnapshot preEventHtmlSnapshot;
+    @Transient
+    private HtmlSnapshot postEventHtmlSnapshot;
 
 
     public DiffResult() {
@@ -36,19 +41,18 @@ public class DiffResult implements Serializable {
     }
 
 
-    public DiffResult(DiffUrl diffUrl, Patch patch, List<HtmlCapture> htmlCaptures, Date dateCaptured) {
-        this(diffUrl, new DiffPatch(patch, dateCaptured), htmlCaptures, dateCaptured);
+    public DiffResult(Patch patch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
+        this(new DiffPatch(patch, dateCaptured), htmlSnapshots, dateCaptured);
     }
 
 
-    public DiffResult(DiffUrl diffUrl, DiffPatch diffPatch, List<HtmlCapture> htmlCaptures, Date dateCaptured) {
-        this.diffUrl = diffUrl;
+    public DiffResult(DiffPatch diffPatch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
         this.diffPatch = diffPatch;
         this.diffPatch.setDiffResult(this);
         this.dateCaptured = dateCaptured;
-        this.htmlCaptures = htmlCaptures;
-        for (HtmlCapture htmlCapture : htmlCaptures) {
-            htmlCapture.setDiffResult(this);
+        this.htmlSnapshots = htmlSnapshots;
+        for (HtmlSnapshot htmlSnapshot : htmlSnapshots) {
+            htmlSnapshot.setDiffResult(this);
         }
     }
 
@@ -66,6 +70,7 @@ public class DiffResult implements Serializable {
     }
 
 
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "date_captured")
     public Date getDateCaptured() {
         return dateCaptured;
@@ -92,43 +97,36 @@ public class DiffResult implements Serializable {
     }
 
 
-    public DiffUrl getDiffUrl() {
-        return diffUrl;
-    }
-
-
-    public void setDiffUrl(DiffUrl diffUrl) {
-        this.diffUrl = diffUrl;
-    }
-
-
-    public HtmlCapture getPreEventHtmlCapture() {
-        if (preEventHtmlCapture == null) {
-            preEventHtmlCapture = getHtmlCaptureByType(CaptureType.PRE_EVENT);
+    public HtmlSnapshot getPreEventHtmlSnapshot() {
+        if (preEventHtmlSnapshot == null) {
+            preEventHtmlSnapshot = getHtmlCaptureByType(CaptureType.PRE_EVENT);
         }
-        return preEventHtmlCapture;
+        return preEventHtmlSnapshot;
     }
 
 
-    public void setPreEventHtmlCapture(HtmlCapture preEventHtmlCapture) {
-        this.preEventHtmlCapture = preEventHtmlCapture;
+    public void setPreEventHtmlSnapshot(HtmlSnapshot preEventHtmlSnapshot) {
+        this.preEventHtmlSnapshot = preEventHtmlSnapshot;
     }
 
 
-    public HtmlCapture getPostEventHtmlCapture() {
-        return postEventHtmlCapture;
+    public HtmlSnapshot getPostEventHtmlSnapshot() {
+        if (postEventHtmlSnapshot == null) {
+            postEventHtmlSnapshot = getHtmlCaptureByType(CaptureType.POST_EVENT);
+        }
+        return postEventHtmlSnapshot;
     }
 
 
-    public void setPostEventHtmlCapture(HtmlCapture postEventHtmlCapture) {
-        this.postEventHtmlCapture = postEventHtmlCapture;
+    public void setPostEventHtmlSnapshot(HtmlSnapshot postEventHtmlSnapshot) {
+        this.postEventHtmlSnapshot = postEventHtmlSnapshot;
     }
 
 
-    private HtmlCapture getHtmlCaptureByType(CaptureType captureType) {
-        for (HtmlCapture htmlCapture : getHtmlCaptures()) {
-            if (htmlCapture.getCaptureType() == captureType) {
-                return htmlCapture;
+    private HtmlSnapshot getHtmlCaptureByType(CaptureType captureType) {
+        for (HtmlSnapshot htmlSnapshot : getHtmlSnapshots()) {
+            if (htmlSnapshot.getCaptureType() == captureType) {
+                return htmlSnapshot;
             }
         }
 
@@ -136,13 +134,13 @@ public class DiffResult implements Serializable {
     }
 
 
-    public List<HtmlCapture> getHtmlCaptures() {
-        return htmlCaptures;
+    public List<HtmlSnapshot> getHtmlSnapshots() {
+        return htmlSnapshots;
     }
 
 
-    public void setHtmlCaptures(List<HtmlCapture> htmlCaptures) {
-        this.htmlCaptures = htmlCaptures;
+    public void setHtmlSnapshots(List<HtmlSnapshot> htmlSnapshots) {
+        this.htmlSnapshots = htmlSnapshots;
     }
 
 
@@ -153,6 +151,16 @@ public class DiffResult implements Serializable {
 
     public void setDiffPatch(DiffPatch diffPatch) {
         this.diffPatch = diffPatch;
+    }
+
+    public DiffUrl getDiffUrl() {
+        for (HtmlSnapshot htmlSnapshot : getHtmlSnapshots()) {
+            if (htmlSnapshot.getDiffUrl() != null) {
+                return htmlSnapshot.getDiffUrl();
+            }
+        }
+
+        return null;
     }
 
 }

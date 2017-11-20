@@ -10,7 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.ndnm.diffbot.model.HtmlCapture;
+import org.ndnm.diffbot.model.HtmlSnapshot;
 
 @Entity
 @Table(name = "diff_url_t")
@@ -19,7 +19,7 @@ public class DiffUrl implements Serializable {
 
     private BigInteger id;
     private String sourceUrl;
-    private HtmlCapture htmlCapture;//ORM parent
+    private HtmlSnapshot htmlSnapshot;//ORM parent
 
 
     public DiffUrl() {
@@ -27,7 +27,7 @@ public class DiffUrl implements Serializable {
     }
 
 
-    public DiffUrl(String sourceUrl, HtmlCapture htmlCapture) {
+    public DiffUrl(String sourceUrl, HtmlSnapshot htmlSnapshot) {
         this.sourceUrl = sourceUrl;
     }
 
@@ -56,13 +56,13 @@ public class DiffUrl implements Serializable {
     }
 
 
-    public HtmlCapture getHtmlCapture() {
-        return htmlCapture;
+    public HtmlSnapshot getHtmlSnapshot() {
+        return htmlSnapshot;
     }
 
 
-    public void setHtmlCapture(HtmlCapture htmlCapture) {
-        this.htmlCapture = htmlCapture;
+    public void setHtmlSnapshot(HtmlSnapshot htmlSnapshot) {
+        this.htmlSnapshot = htmlSnapshot;
     }
 
 

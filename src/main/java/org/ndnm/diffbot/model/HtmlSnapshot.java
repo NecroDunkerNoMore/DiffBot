@@ -13,27 +13,32 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.ndnm.diffbot.model.diff.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 
 @Entity
 @Table(name = "html_capture_t")
-public class HtmlCapture implements Serializable {
+public class HtmlSnapshot implements Serializable {
     private static final long serialVersionUID = 8530872380652605568L;
 
     private BigDecimal id;
+    private DiffUrl diffUrl;
     private Date dateCaptured;
     private String rawHtml;
-    private DiffResult diffResult;//ORM parent
     private CaptureType captureType;
+    private DiffResult diffResult;//ORM parent
 
 
-    public HtmlCapture() {
-        //For Orm
+    public HtmlSnapshot() {
+        //For ORM
     }
 
 
-    public HtmlCapture(String rawHtml, CaptureType captureType) {
+    public HtmlSnapshot(DiffUrl diffUrl, String rawHtml, CaptureType captureType) {
+        this.diffUrl = diffUrl;
         this.rawHtml = rawHtml;
         this.dateCaptured = Calendar.getInstance().getTime();
         this.captureType = captureType;
@@ -53,6 +58,16 @@ public class HtmlCapture implements Serializable {
     }
 
 
+    public DiffUrl getDiffUrl() {
+        return diffUrl;
+    }
+
+
+    public void setDiffUrl(DiffUrl diffUrl) {
+        this.diffUrl = diffUrl;
+    }
+
+
     public DiffResult getDiffResult() {
         return diffResult;
     }
@@ -63,6 +78,8 @@ public class HtmlCapture implements Serializable {
     }
 
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "date_captured")
     public Date getDateCaptured() {
         return dateCaptured;
     }
@@ -73,6 +90,7 @@ public class HtmlCapture implements Serializable {
     }
 
 
+    @Column(name = "raw_html")
     public String getRawHtml() {
         return rawHtml;
     }
