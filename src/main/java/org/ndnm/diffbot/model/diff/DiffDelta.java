@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import difflib.Delta;
 
@@ -28,9 +29,12 @@ public class DiffDelta implements Serializable {
     private int startPosition;
     private int endPosition;
     private List<DiffLine> diffLines;
-    private List<DiffLine> originalLines;
-    private List<DiffLine> revisedLines;
     private DiffPatch diffPatch;//parent for orm
+
+    @Transient
+    private List<DiffLine> originalLines;
+    @Transient
+    private List<DiffLine> revisedLines;
 
 
     public DiffDelta() {
