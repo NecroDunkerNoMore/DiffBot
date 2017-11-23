@@ -16,7 +16,8 @@ CREATE TABLE diff_patch_t (
   diff_result_id BIGINT UNSIGNED NOT NULL,
   date_captured  DATETIME        NOT NULL,
   source_url     TEXT,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY diff_result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
 );
 
 
@@ -37,7 +38,9 @@ CREATE TABLE diff_line_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_delta_id BIGINT UNSIGNED NOT NULL,
   line          TEXT            NOT NULL,
-  PRIMARY KEY (id)
+  line_type     VARCHAR(16)        NOT NULL,
+  PRIMARY KEY (id, line_type),
+  FOREIGN KEY diff_delta_id_fk (diff_delta_id) REFERENCES diff_delta_t (id)
 );
 
 
@@ -56,7 +59,8 @@ CREATE TABLE html_snapshot_t (
   diff_url_id    BIGINT UNSIGNED NOT NULL,
   date_captured  DATETIME        NOT NULL,
   raw_html       TEXT,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY diff_result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
 );
 
 
