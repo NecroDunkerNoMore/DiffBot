@@ -14,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -28,9 +29,9 @@ public class DiffPatch implements Serializable {
     private static final long serialVersionUID = 1180167484368589988L;
 
     private BigInteger id;
+    private DiffResult diffResult;//ORM parent
     private Date dateCaptured;
     private List<DiffDelta> diffDeltas;
-    private DiffResult diffResult;//ORM parent
 
     @Transient
     private List<DiffDelta> changeDeltas;
@@ -90,7 +91,7 @@ public class DiffPatch implements Serializable {
 
     /*
      * ORM requires a reference back to the parent object, we are the parent here. This
-     * is also enforced by DB constraints w/ a FK from DiffDelta to DiffPatch.
+     * is also enforced by DB constraints w/ a FK from DiffDeltaDao to DiffPatch.
      */
     private void registerDiffDeltas(List<DiffDelta> diffDeltas) {
         if (this.diffDeltas == null) {

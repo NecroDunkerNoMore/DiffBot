@@ -10,6 +10,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 
@@ -19,9 +21,9 @@ public class DiffLine implements Serializable {
     private static final long serialVersionUID = 9204315634738276939L;
 
     private BigInteger id;
+    private DiffDelta diffDelta;//ORM parent
     private String line;
     private LineType lineType;
-    private DiffDelta diffDelta;//ORM parent
 
 
     public DiffLine() {
@@ -70,6 +72,8 @@ public class DiffLine implements Serializable {
     }
 
 
+    @ManyToOne(targetEntity = DiffDelta.class)
+    @JoinColumn(name = "diff_delta_id", nullable = false)
     public DiffDelta getDiffDelta() {
         return diffDelta;
     }

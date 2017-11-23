@@ -5,15 +5,18 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -25,11 +28,11 @@ public class DiffDelta implements Serializable {
     private static final long serialVersionUID = -2395860567963108268L;
 
     private BigInteger id;
+    private DiffPatch diffPatch;//parent for orm
     private DeltaType deltaType;
     private int startPosition;
     private int endPosition;
     private List<DiffLine> diffLines;
-    private DiffPatch diffPatch;//parent for orm
 
     @Transient
     private List<DiffLine> originalLines;
@@ -52,7 +55,6 @@ public class DiffDelta implements Serializable {
 
         this.revisedLines = new ArrayList<>();
         initLines(delta, revisedLines, LineType.REVISED);
-
     }
 
 
@@ -69,6 +71,7 @@ public class DiffDelta implements Serializable {
     }
 
 
+    @OneToMany(targetEntity = DiffLine.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffDelta")
     public List<DiffLine> getDiffLines() {
         return diffLines;
     }
@@ -88,7 +91,6 @@ public class DiffDelta implements Serializable {
             diffLine.setDiffDelta(this);
             diffLines.add(diffLine);
         }
-
     }
 
 

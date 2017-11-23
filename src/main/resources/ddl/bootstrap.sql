@@ -3,10 +3,10 @@ CREATE DATABASE diffbot;
 USE diffbot;
 
 CREATE TABLE diff_result_t (
-  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  diff_url_id         BIGINT UNSIGNED NOT NULL,
-  diff_patch_id       BIGINT UNSIGNED NOT NULL,
-  date_captured       DATETIME        NOT NULL,
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  diff_url_id   BIGINT UNSIGNED NOT NULL,
+  diff_patch_id BIGINT UNSIGNED NOT NULL,
+  date_captured DATETIME        NOT NULL,
   PRIMARY KEY (id)
 );
 
@@ -28,15 +28,30 @@ CREATE TABLE html_capture_t (
 
 
 CREATE TABLE diff_patch_t (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  source_url TEXT,
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  date_captured DATETIME        NOT NULL,
+  source_url    TEXT,
   PRIMARY KEY (id)
 );
 
 
 CREATE TABLE diff_delta_t (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  source_url TEXT,
+  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  diff_patch_id  BIGINT UNSIGNED NOT NULL,
+  start_position INT             NOT NULL,
+  end_position   INT             NOT NULL,
+  source_url     TEXT,
+  PRIMARY KEY (id),
+  FOREIGN KEY diff_patch_id_fk (diff_patch_id) REFERENCES diff_patch_t (id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+
+CREATE TABLE diff_line_t (
+  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  diff_delta_id BIGINT UNSIGNED NOT NULL,
+  line           TEXT            NOT NULL,
   PRIMARY KEY (id)
 );
 
