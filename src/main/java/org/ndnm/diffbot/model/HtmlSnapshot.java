@@ -2,7 +2,6 @@ package org.ndnm.diffbot.model;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -26,11 +25,11 @@ public class HtmlSnapshot implements Serializable {
     private static final long serialVersionUID = 8530872380652605568L;
 
     private BigInteger id;
-    private String rawUrl;
-    private Date dateCaptured;
-    private String rawHtml;
-    private CaptureType captureType;
     private DiffResult diffResult;//ORM parent
+    private CaptureType captureType;
+    private Date dateCaptured;
+    private String rawUrl;
+    private String rawHtml;
 
 
     public HtmlSnapshot() {
@@ -38,11 +37,11 @@ public class HtmlSnapshot implements Serializable {
     }
 
 
-    public HtmlSnapshot(String rawUrl, String rawHtml, CaptureType captureType) {
+    public HtmlSnapshot(String rawUrl, String rawHtml, CaptureType captureType, Date dateCaptured) {
+        this.dateCaptured = dateCaptured;
+        this.captureType = captureType;
         this.rawUrl = rawUrl;
         this.rawHtml = rawHtml;
-        this.dateCaptured = Calendar.getInstance().getTime();
-        this.captureType = captureType;
     }
 
 

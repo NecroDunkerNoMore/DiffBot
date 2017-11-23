@@ -2,7 +2,7 @@ package org.ndnm.diffbot.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.ndnm.diffbot.model.CaptureType;
@@ -14,26 +14,27 @@ import difflib.DiffUtils;
 import difflib.Patch;
 
 public class DiffGenerator {
+    //This regex will eat multiple empty lines, leaving only text-containing ones
     private static final String MULTI_NEWLINE_REGEX = "\\R+";
 
-    public static DiffResult getDiffResult(DiffUrl diffUrl, String originalPageAsString, String revisedPageAsString) {
+    public static DiffResult getDiffResult(Date dateCaptured, DiffUrl diffUrl, String originalPageAsString, String revisedPageAsString) {
         List<String> originalFileLines = Arrays.asList(originalPageAsString.split(MULTI_NEWLINE_REGEX));
         List<String> revisedFileLines = Arrays.asList(revisedPageAsString.split(MULTI_NEWLINE_REGEX));
 
         Patch patch = DiffUtils.diff(originalFileLines, revisedFileLines);
-        List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl.getSourceUrl(), originalPageAsString, revisedPageAsString);
+        List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl.getSourceUrl(), originalPageAsString, revisedPageAsString, dateCaptured);
 
-        return new DiffResult(diffUrl, patch, htmlSnapshots, Calendar.getInstance().getTime());
+        return new DiffResult(diffUrl, patch, htmlSnapshots, dateCaptured);
     }
 
 
-    private static List<HtmlSnapshot> createHtmlCaptures(String rawUrl, String originalPageAsString, String revisedPageAsString) {
+    private static List<HtmlSnapshot> createHtmlCaptures(String rawUrl, String originalPageAsString, String revisedPageAsString, Date dateCaptured) {
         List<HtmlSnapshot> htmlSnapshots = new ArrayList<>();
 
-        HtmlSnapshot preEventCapture = new HtmlSnapshot(rawUrl, originalPageAsString, CaptureType.PRE_EVENT);
+        HtmlSnapshot preEventCapture = new HtmlSnapshot(rawUrl, originalPageAsString, CaptureType.PRE_EVENT, dateCaptured);
         htmlSnapshots.add(preEventCapture);
 
-        HtmlSnapshot postEventCapture = new HtmlSnapshot(rawUrl, revisedPageAsString, CaptureType.POST_EVENT);
+        HtmlSnapshot postEventCapture = new HtmlSnapshot(rawUrl, revisedPageAsString, CaptureType.POST_EVENT, dateCaptured);
         htmlSnapshots.add(postEventCapture);
 
         return htmlSnapshots;

@@ -2,6 +2,7 @@ package org.ndnm.diffbot;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class DiffingTest {
             return;
         }
 
-        diffResult = DiffGenerator.getDiffResult(new DiffUrl(), originalFileAsString, revisedFileAsString);
+        diffResult = DiffGenerator.getDiffResult(Calendar.getInstance().getTime(), new DiffUrl(), originalFileAsString, revisedFileAsString);
     }
 
 
