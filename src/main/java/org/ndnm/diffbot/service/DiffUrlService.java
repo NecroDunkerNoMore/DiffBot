@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.ndnm.diffbot.model.diff.DiffUrl;
 
-public interface UrlService {
+public interface DiffUrlService {
     List<DiffUrl> findAll();
 
     DiffUrl findById(BigInteger id);

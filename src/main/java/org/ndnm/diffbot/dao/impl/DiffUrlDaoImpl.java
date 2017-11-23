@@ -36,6 +36,7 @@ public class DiffUrlDaoImpl extends AbstractDao<BigInteger, DiffUrl> implements 
 
     @Override
     public void delete(DiffUrl diffUrl) {
+        diffUrl = getEntityManager().contains(diffUrl) ? diffUrl : getEntityManager().merge(diffUrl);
         super.delete(diffUrl);
     }
 

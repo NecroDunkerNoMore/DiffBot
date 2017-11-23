@@ -8,7 +8,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -18,6 +17,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import difflib.Patch;
 
@@ -120,7 +122,8 @@ public class DiffResult implements Serializable {
     }
 
 
-    @OneToMany(targetEntity = HtmlSnapshot.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffResult")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(targetEntity = HtmlSnapshot.class, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffResult")
     public List<HtmlSnapshot> getHtmlSnapshots() {
         return htmlSnapshots;
     }
@@ -140,7 +143,8 @@ public class DiffResult implements Serializable {
     }
 
 
-    @OneToOne(targetEntity = DiffPatch.class, fetch = FetchType.EAGER, optional = false)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToOne(targetEntity = DiffPatch.class, optional = false)
     public DiffPatch getDiffPatch() {
         return diffPatch;
     }
@@ -158,7 +162,8 @@ public class DiffResult implements Serializable {
     }
 
 
-    @OneToOne(targetEntity = DiffUrl.class, fetch = FetchType.EAGER, optional = false)
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToOne(targetEntity = DiffUrl.class, optional = false)
     public DiffUrl getDiffUrl() {
         return diffUrl;
     }

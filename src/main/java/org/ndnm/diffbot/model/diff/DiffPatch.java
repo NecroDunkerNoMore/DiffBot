@@ -100,6 +100,7 @@ public class DiffPatch implements Serializable {
     }
 
 
+    @Transient
     public List<DiffDelta> getChangeDeltas() {
         if (changeDeltas == null) {
             initDeltaListsByType(getDiffDeltas());
@@ -113,6 +114,7 @@ public class DiffPatch implements Serializable {
     }
 
 
+    @Transient
     public List<DiffDelta> getInsertDeltas() {
         if (insertDeltas == null) {
             initDeltaListsByType(getDiffDeltas());
@@ -126,6 +128,7 @@ public class DiffPatch implements Serializable {
     }
 
 
+    @Transient
     public List<DiffDelta> getDeleteDeltas() {
         if (deleteDeltas == null) {
             initDeltaListsByType(diffDeltas);

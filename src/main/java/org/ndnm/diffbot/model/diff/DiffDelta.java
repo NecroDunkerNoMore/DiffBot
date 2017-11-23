@@ -34,7 +34,7 @@ public class DiffDelta implements Serializable {
     private int startPosition;
     private int endPosition;
 
-
+    // Convenience lists built from diffLines
     @Transient
     private List<DiffLine> originalLines;
     @Transient
@@ -136,11 +136,13 @@ public class DiffDelta implements Serializable {
     }
 
 
+    @Transient
     public List<DiffLine> getOriginalLines() {
         return originalLines;
     }
 
 
+    @Transient
     public List<DiffLine> getRevisedLines() {
         return revisedLines;
     }

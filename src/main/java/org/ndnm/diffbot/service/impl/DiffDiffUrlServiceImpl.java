@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.ndnm.diffbot.dao.DiffUrlDao;
 import org.ndnm.diffbot.model.diff.DiffUrl;
-import org.ndnm.diffbot.service.UrlService;
+import org.ndnm.diffbot.service.DiffUrlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class UrlServiceImpl implements UrlService {
+public class DiffDiffUrlServiceImpl implements DiffUrlService {
     private final DiffUrlDao dao;
 
 
     @Autowired
-    public UrlServiceImpl(DiffUrlDao dao) {
+    public DiffDiffUrlServiceImpl(DiffUrlDao dao) {
         this.dao = dao;
     }
 

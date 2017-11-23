@@ -124,7 +124,7 @@ public class DiffBotConfiguration {
 
     @Bean(name = "diffBotVersion")
     public String getDiffbotVersion() {
-        return environment.getRequiredProperty("diffbot.version");
+        return environment.getRequiredProperty("bot.version");
     }
 
 
