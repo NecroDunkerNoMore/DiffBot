@@ -135,7 +135,7 @@ public class DiffResult implements Serializable {
 
 
     // Used for manual object creation, needed by hibernate to persist associations
-    public void addHtmlSnapShots(List<HtmlSnapshot> htmlSnapshots) {
+    private void addHtmlSnapShots(List<HtmlSnapshot> htmlSnapshots) {
         this.htmlSnapshots = htmlSnapshots;
         for (HtmlSnapshot htmlSnapshot : htmlSnapshots) {
             htmlSnapshot.setDiffResult(this);
@@ -156,7 +156,7 @@ public class DiffResult implements Serializable {
 
 
     // Used for manual object creation, needed by hibernate to persist associations
-    public void addDiffPatch(DiffPatch diffPatch) {
+    private void addDiffPatch(DiffPatch diffPatch) {
         this.diffPatch = diffPatch;
         diffPatch.setDiffResult(this);
     }

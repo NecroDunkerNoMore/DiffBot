@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DiffResultServiceImpl implements DiffResultService {
     private static final Logger LOG = LogManager.getLogger(DiffResultServiceImpl.class);
 
-    final DiffResultDao dao;
+    private final DiffResultDao dao;
 
 
     @Autowired
@@ -41,20 +41,14 @@ public class DiffResultServiceImpl implements DiffResultService {
 
 
     @Override
+    public void update(DiffResult diffResult) {
+        dao.update(diffResult);
+    }
+
+
+    @Override
     public void delete(DiffResult diffResult) {
         dao.delete(diffResult);
-    }
-
-
-    @Override
-    public DiffResult findByTargetCommentId(String targetCommentId) {
-        return dao.findByTargetCommentId(targetCommentId);
-    }
-
-
-    @Override
-    public boolean existsByTargetCommentId(String targetCommentId) {
-        return this.findByTargetCommentId(targetCommentId) != null;
     }
 
 }

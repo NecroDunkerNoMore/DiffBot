@@ -3,6 +3,7 @@ package org.ndnm.diffbot.model.diff;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -18,6 +19,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import difflib.Delta;
@@ -31,6 +34,7 @@ public class DiffDelta implements Serializable {
     private DiffPatch diffPatch;//ORM parent
     private List<DiffLine> diffLines;//ORM children
     private DeltaType deltaType;
+    private Date dateCreated;
     private int startPosition;
     private int endPosition;
 
@@ -46,16 +50,12 @@ public class DiffDelta implements Serializable {
     }
 
 
-    public DiffDelta(Delta delta) {
+    public DiffDelta(Delta delta, Date dateCreated) {
         this.deltaType = initType(delta.getType());
         this.startPosition = initStartPositionByType(delta);
         this.endPosition = initEndPositionByType(delta);
-
-        this.originalLines = new ArrayList<>();
-        initLines(delta, originalLines, LineType.ORIGINAL);
-
-        this.revisedLines = new ArrayList<>();
-        initLines(delta, revisedLines, LineType.REVISED);
+        this.dateCreated = dateCreated;
+        initLines(delta);
     }
 
 
@@ -136,6 +136,18 @@ public class DiffDelta implements Serializable {
     }
 
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "date_created")
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+
     @Transient
     public List<DiffLine> getOriginalLines() {
         return originalLines;
@@ -159,7 +171,25 @@ public class DiffDelta implements Serializable {
 
 
     @SuppressWarnings("unchecked")
-    private void initLines(Delta delta, List<DiffLine> diffLines, LineType type) {
+    private void initLines(Delta delta) {
+        this.diffLines = new ArrayList<>();
+
+        this.originalLines = convertLinesByType(delta, LineType.ORIGINAL);
+        this.diffLines.addAll(originalLines);
+
+        this.revisedLines = convertLinesByType(delta, LineType.REVISED);
+        diffLines.addAll(revisedLines);
+
+        for (DiffLine diffLine : diffLines) {
+            diffLine.setDiffDelta(this);
+        }
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private List<DiffLine> convertLinesByType(Delta delta, LineType type) {
+        List<DiffLine> convertedDiffLines = new ArrayList<>();
+
         List<String> linesToConvert;
         if (type == LineType.ORIGINAL) {
             linesToConvert = delta.getOriginal().getLines();
@@ -169,17 +199,19 @@ public class DiffDelta implements Serializable {
 
         for (String line : linesToConvert) {
             DiffLine diffLine = new DiffLine(line, type);
-            diffLines.add(diffLine);
+            convertedDiffLines.add(diffLine);
         }
+
+        return convertedDiffLines;
     }
 
 
     private int initStartPositionByType(Delta delta) {
         switch (this.deltaType) {
-            case CHANGE:
-                return delta.getOriginal().getPosition();
             case INSERT:
                 return delta.getRevised().getPosition();
+            case CHANGE:
+                return delta.getOriginal().getPosition();
             case DELETE:
                 return delta.getOriginal().getPosition();
             default:
@@ -190,10 +222,10 @@ public class DiffDelta implements Serializable {
 
     private int initEndPositionByType(Delta delta) {
         switch (this.deltaType) {
-            case CHANGE:
-                return delta.getOriginal().last();
             case INSERT:
                 return delta.getRevised().last();
+            case CHANGE:
+                return delta.getOriginal().last();
             case DELETE:
                 return delta.getOriginal().last();
             default:
@@ -204,10 +236,10 @@ public class DiffDelta implements Serializable {
 
     private DeltaType initType(Delta.TYPE internalDeltaType) {
         switch (internalDeltaType) {
-            case CHANGE:
-                return DeltaType.CHANGE;
             case INSERT:
                 return DeltaType.INSERT;
+            case CHANGE:
+                return DeltaType.CHANGE;
             case DELETE:
                 return DeltaType.DELETE;
             default:

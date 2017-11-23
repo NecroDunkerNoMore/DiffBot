@@ -32,7 +32,7 @@ public class DiffPatch implements Serializable {
     private BigInteger id;
     private DiffResult diffResult;//ORM parent
     private List<DiffDelta> diffDeltas;//ORM children
-    private Date dateCaptured;
+    private Date dateCreated;
 
     // Convenience lists built from diffDeltas
     @Transient
@@ -49,8 +49,8 @@ public class DiffPatch implements Serializable {
 
 
     @SuppressWarnings("unchecked")//patch.getDeltas()
-    public DiffPatch(Patch patch, Date dateCaptured) {
-        this.dateCaptured = dateCaptured;
+    public DiffPatch(Patch patch, Date dateCreated) {
+        this.dateCreated = dateCreated;
         initLists(patch.getDeltas());
     }
 
@@ -70,13 +70,13 @@ public class DiffPatch implements Serializable {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "date_captured")
-    public Date getDateCaptured() {
-        return dateCaptured;
+    public Date getDateCreated() {
+        return dateCreated;
     }
 
 
-    public void setDateCaptured(Date dateCaptured) {
-        this.dateCaptured = dateCaptured;
+    public void setDateCreated(Date dateCaptured) {
+        this.dateCreated = dateCaptured;
     }
 
 
@@ -168,7 +168,7 @@ public class DiffPatch implements Serializable {
 
         castDeltas.addAll(deltas);
         for (Delta delta : castDeltas) {
-            DiffDelta diffDelta = new DiffDelta(delta);
+            DiffDelta diffDelta = new DiffDelta(delta, dateCreated);
             diffDeltas.add(diffDelta);
         }
 

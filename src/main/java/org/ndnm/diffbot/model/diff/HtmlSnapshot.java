@@ -69,11 +69,6 @@ public class HtmlSnapshot implements Serializable {
     }
 
 
-    /*
-     * This is the parent object, which we need present for hibernate to
-     * know about the relationship. Note, this is mapped many-to-one, but
-     * there should only ever be two HtmlSnapshot: pre and post.
-     */
     @ManyToOne(targetEntity = DiffResult.class)
     @JoinColumn(name = "diff_result_id", nullable = false)
     public DiffResult getDiffResult() {

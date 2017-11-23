@@ -15,7 +15,7 @@ import difflib.Patch;
 
 public class DiffGenerator {
     //This regex will eat multiple empty lines, leaving only text-containing ones
-    private static final String MULTI_NEWLINE_REGEX = "\\R+";
+    public static final String MULTI_NEWLINE_REGEX = "\\R+";
 
     public static DiffResult getDiffResult(Date dateCaptured, DiffUrl diffUrl, String originalPageAsString, String revisedPageAsString) {
         List<String> originalFileLines = Arrays.asList(originalPageAsString.split(MULTI_NEWLINE_REGEX));

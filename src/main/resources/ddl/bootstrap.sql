@@ -24,6 +24,7 @@ CREATE TABLE diff_patch_t (
 CREATE TABLE diff_delta_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_patch_id  BIGINT UNSIGNED NOT NULL,
+  date_created DATETIME        NOT NULL,
   start_position INT             NOT NULL,
   end_position   INT             NOT NULL,
   source_url     TEXT,

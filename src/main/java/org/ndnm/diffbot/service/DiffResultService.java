@@ -10,9 +10,7 @@ public interface DiffResultService {
 
     void save(DiffResult diffResult);
 
+    void update(DiffResult diffResult);
+
     void delete(DiffResult diffResult);
-
-    DiffResult findByTargetCommentId(String targetCommentId);
-
-    boolean existsByTargetCommentId(String targetCommentId);
 }

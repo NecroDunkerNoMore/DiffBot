@@ -1,15 +1,16 @@
 package org.ndnm.diffbot;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.ndnm.diffbot.model.diff.CaptureType;
+import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
-import org.ndnm.diffbot.model.diff.HtmlSnapshot;
+import org.ndnm.diffbot.service.DiffResultService;
 import org.ndnm.diffbot.service.DiffUrlService;
-import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.ndnm.diffbot.spring.SpringContext;
+import org.ndnm.diffbot.util.DiffGenerator;
 
 public class PersistenceTest extends GeneratorTestBase {
 
@@ -37,28 +38,16 @@ public class PersistenceTest extends GeneratorTestBase {
 
 
     @Test
-    public void testHtmlSnapshotCrund() {
-        HtmlSnapshotService htmlSnapshotService = SpringContext.getBean(HtmlSnapshotService.class);
+    public void testDiffResultCrud() {
+        DiffResultService diffResultService = SpringContext.getBean(DiffResultService.class);
+
+        Date dateCaptured = Calendar.getInstance().getTime();
         DiffUrl diffUrl = new DiffUrl("https://example.com/foo.html");
 
-        // Test CReate
-        HtmlSnapshot htmlSnapshot = new HtmlSnapshot(diffUrl, originalFileAsString, CaptureType.PRE_EVENT, Calendar.getInstance().getTime());
-        htmlSnapshotService.save(htmlSnapshot);
-        HtmlSnapshot savedHtmlSnapshot = htmlSnapshotService.findById(htmlSnapshot.getId());
-        Assert.assertTrue("HtmlSnapshot save failed!", savedHtmlSnapshot != null);
-
-        // Test Update
-        htmlSnapshot.setCaptureType(CaptureType.POST_EVENT);
-        htmlSnapshotService.update(htmlSnapshot);
-        HtmlSnapshot updatedSnapshot = htmlSnapshotService.findById(htmlSnapshot.getId());
-        Assert.assertTrue("HtmlSnapshot Update did not persist!", updatedSnapshot.getCaptureType() == CaptureType.POST_EVENT);
-
-        // Test Delete
-        htmlSnapshotService.delete(htmlSnapshot);
-        HtmlSnapshot deletedSnapshot = htmlSnapshotService.findById(htmlSnapshot.getId());
-        Assert.assertTrue("HtmlSnapshot delete failed!", deletedSnapshot == null);
-
-
+        DiffResult diffResult = DiffGenerator.getDiffResult(dateCaptured, diffUrl, originalFileAsString, revisedFileAsString);
+        diffResultService.save(diffResult);
+        DiffResult savedDiffResult = diffResultService.findById(diffResult.getId());
+        Assert.assertNotNull(savedDiffResult);
     }
 
 }
