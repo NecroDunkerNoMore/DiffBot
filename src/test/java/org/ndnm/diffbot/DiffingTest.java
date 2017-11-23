@@ -1,7 +1,5 @@
 package org.ndnm.diffbot;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.List;
 
@@ -16,26 +14,15 @@ import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.util.DiffGenerator;
 
 
-public class DiffingTest {
+public class DiffingTest extends GeneratorTestBase {
     private static DiffResult diffResult;
 
 
     @BeforeClass
-    public static void setup() {
-        String originalFileAsString;
-        String revisedFileAsString;
-        try {
-            originalFileAsString = new String(Files.readAllBytes(Paths.get("src/test/resources/raw_data/original.html")));
-            revisedFileAsString = new String(Files.readAllBytes(Paths.get("src/test/resources/raw_data/revised.html")));
-        } catch (Exception e) {
-            Assert.fail("Could not load test files!: " + e.getMessage());
-            return;
-        }
-
+    public static void initDiffResult() {
         diffResult = DiffGenerator.getDiffResult(Calendar.getInstance().getTime(),
                                                  new DiffUrl(), originalFileAsString, revisedFileAsString);
     }
-
 
     /*
      * A change will produce lines from both the original and revised versions.
