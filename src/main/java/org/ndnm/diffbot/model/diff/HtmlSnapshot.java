@@ -1,4 +1,4 @@
-package org.ndnm.diffbot.model;
+package org.ndnm.diffbot.model.diff;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -8,16 +8,16 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import org.ndnm.diffbot.model.diff.DiffResult;
 
 @Entity
 @Table(name = "html_snapshot_t")
@@ -26,9 +26,9 @@ public class HtmlSnapshot implements Serializable {
 
     private BigInteger id;
     private DiffResult diffResult;//ORM parent
+    private DiffUrl diffUrl;
     private CaptureType captureType;
     private Date dateCaptured;
-    private String rawUrl;
     private String rawHtml;
 
 
@@ -37,10 +37,10 @@ public class HtmlSnapshot implements Serializable {
     }
 
 
-    public HtmlSnapshot(String rawUrl, String rawHtml, CaptureType captureType, Date dateCaptured) {
+    public HtmlSnapshot(DiffUrl diffUrl, String rawHtml, CaptureType captureType, Date dateCaptured) {
         this.dateCaptured = dateCaptured;
         this.captureType = captureType;
-        this.rawUrl = rawUrl;
+        this.diffUrl = diffUrl;
         this.rawHtml = rawHtml;
     }
 
@@ -58,17 +58,22 @@ public class HtmlSnapshot implements Serializable {
     }
 
 
-
-    public String getRawUrl() {
-        return rawUrl;
+    @OneToOne(targetEntity = DiffUrl.class, fetch = FetchType.EAGER)
+    public DiffUrl getDiffUrl() {
+        return diffUrl;
     }
 
 
-    public void setRawUrl(String rawUrl) {
-        this.rawUrl = rawUrl;
+    public void setDiffUrl(DiffUrl diffUrl) {
+        this.diffUrl = diffUrl;
     }
 
 
+    /*
+     * This is the parent object, which we need present for hibernate to
+     * know about the relationship. Note, this is mapped many-to-one, but
+     * there should only ever be two HtmlSnapshot: pre and post.
+     */
     @ManyToOne(targetEntity = DiffResult.class)
     @JoinColumn(name = "diff_result_id", nullable = false)
     public DiffResult getDiffResult() {

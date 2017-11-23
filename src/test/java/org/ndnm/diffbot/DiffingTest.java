@@ -32,7 +32,8 @@ public class DiffingTest {
             return;
         }
 
-        diffResult = DiffGenerator.getDiffResult(Calendar.getInstance().getTime(), new DiffUrl(), originalFileAsString, revisedFileAsString);
+        diffResult = DiffGenerator.getDiffResult(Calendar.getInstance().getTime(),
+                                                 new DiffUrl(), originalFileAsString, revisedFileAsString);
     }
 
 

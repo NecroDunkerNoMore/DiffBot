@@ -31,9 +31,10 @@ public class DiffPatch implements Serializable {
 
     private BigInteger id;
     private DiffResult diffResult;//ORM parent
+    private List<DiffDelta> diffDeltas;//ORM children
     private Date dateCaptured;
-    private List<DiffDelta> diffDeltas;
 
+    // Convenience lists built from diffDeltas
     @Transient
     private List<DiffDelta> changeDeltas;
     @Transient
@@ -90,18 +91,11 @@ public class DiffPatch implements Serializable {
     }
 
 
-    /*
-     * ORM requires a reference back to the parent object, we are the parent here. This
-     * is also enforced by DB constraints w/ a FK from DiffDeltaDao to DiffPatch.
-     */
-    private void registerDiffDeltas(List<DiffDelta> diffDeltas) {
-        if (this.diffDeltas == null) {
-            this.diffDeltas = new ArrayList<>();
-        }
-
+    // Used for manual object creation, needed by hibernate to persist associations
+    private void addDiffDeltas(List<DiffDelta> diffDeltas) {
+        this.diffDeltas = diffDeltas;
         for (DiffDelta diffDelta : diffDeltas) {
             diffDelta.setDiffPatch(this);
-            this.diffDeltas.add(diffDelta);
         }
     }
 
@@ -145,7 +139,7 @@ public class DiffPatch implements Serializable {
     }
 
 
-    @OneToOne(targetEntity = DiffResult.class)
+    @OneToOne(targetEntity = DiffResult.class, optional = false)
     @JoinColumn(name = "diff_result_id", nullable = false)
     public DiffResult getDiffResult() {
         return diffResult;
@@ -159,7 +153,7 @@ public class DiffPatch implements Serializable {
 
     private void initLists(List<Delta> deltas) {
         List<DiffDelta> allDiffDeltas = convertDeltasToDiffDeltas(deltas);
-        registerDiffDeltas(allDiffDeltas);//Register for ORM
+        addDiffDeltas(allDiffDeltas);//Register for ORM
         initDeltaListsByType(allDiffDeltas);
     }
 

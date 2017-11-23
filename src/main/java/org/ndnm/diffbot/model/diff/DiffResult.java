@@ -19,10 +19,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
-import org.ndnm.diffbot.model.CaptureType;
-import org.ndnm.diffbot.model.HtmlSnapshot;
-
 import difflib.Patch;
+
+
 
 @Entity
 @Table(name = "diff_result_t")
@@ -53,13 +52,9 @@ public class DiffResult implements Serializable {
 
     public DiffResult(DiffUrl diffUrl, DiffPatch diffPatch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
         this.diffUrl = diffUrl;
-        this.diffPatch = diffPatch;
-        this.diffPatch.setDiffResult(this);
         this.dateCaptured = dateCaptured;
-        this.htmlSnapshots = htmlSnapshots;
-        for (HtmlSnapshot htmlSnapshot : htmlSnapshots) {
-            htmlSnapshot.setDiffResult(this);
-        }
+        addDiffPatch(diffPatch);
+        addHtmlSnapShots(htmlSnapshots);
     }
 
 
@@ -136,7 +131,16 @@ public class DiffResult implements Serializable {
     }
 
 
-    @OneToOne
+    // Used for manual object creation, needed by hibernate to persist associations
+    public void addHtmlSnapShots(List<HtmlSnapshot> htmlSnapshots) {
+        this.htmlSnapshots = htmlSnapshots;
+        for (HtmlSnapshot htmlSnapshot : htmlSnapshots) {
+            htmlSnapshot.setDiffResult(this);
+        }
+    }
+
+
+    @OneToOne(targetEntity = DiffPatch.class, fetch = FetchType.EAGER, optional = false)
     public DiffPatch getDiffPatch() {
         return diffPatch;
     }
@@ -147,7 +151,14 @@ public class DiffResult implements Serializable {
     }
 
 
-    @OneToOne
+    // Used for manual object creation, needed by hibernate to persist associations
+    public void addDiffPatch(DiffPatch diffPatch) {
+        this.diffPatch = diffPatch;
+        diffPatch.setDiffResult(this);
+    }
+
+
+    @OneToOne(targetEntity = DiffUrl.class, fetch = FetchType.EAGER, optional = false)
     public DiffUrl getDiffUrl() {
         return diffUrl;
     }
@@ -174,5 +185,4 @@ public class DiffResult implements Serializable {
     public List<DiffDelta> getDeleteDeltas() {
         return diffPatch.getDeleteDeltas();
     }
-
 }

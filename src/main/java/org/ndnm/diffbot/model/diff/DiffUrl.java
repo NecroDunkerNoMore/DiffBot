@@ -2,18 +2,17 @@ package org.ndnm.diffbot.model.diff;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import org.ndnm.diffbot.model.HtmlSnapshot;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "diff_url_t")
@@ -22,7 +21,8 @@ public class DiffUrl implements Serializable {
 
     private BigInteger id;
     private String sourceUrl;
-    private HtmlSnapshot htmlSnapshot;//ORM parent
+    private Date dateCreated;
+    private boolean active;
 
 
     public DiffUrl() {
@@ -30,8 +30,10 @@ public class DiffUrl implements Serializable {
     }
 
 
-    public DiffUrl(String sourceUrl, HtmlSnapshot htmlSnapshot) {
+    public DiffUrl(String sourceUrl) {
         this.sourceUrl = sourceUrl;
+        this.dateCreated = Calendar.getInstance().getTime();
+        this.active = true;
     }
 
 
@@ -59,20 +61,31 @@ public class DiffUrl implements Serializable {
     }
 
 
-    @OneToMany(targetEntity = HtmlSnapshot.class)
-    @JoinColumn(name = "html_snapshot_id", nullable = false)
-    public HtmlSnapshot getHtmlSnapshot() {
-        return htmlSnapshot;
-    }
-
-
-    public void setHtmlSnapshot(HtmlSnapshot htmlSnapshot) {
-        this.htmlSnapshot = htmlSnapshot;
-    }
-
-
     @Override
     public String toString() {
         return getSourceUrl();
+    }
+
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "date_created")
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+
+    @Column(name = "active")
+    public boolean isActive() {
+        return active;
+    }
+
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

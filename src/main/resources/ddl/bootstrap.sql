@@ -42,9 +42,10 @@ CREATE TABLE diff_line_t (
 
 
 CREATE TABLE diff_url_t (
-  id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  html_snapshot_id BIGINT UNSIGNED NOT NULL,
-  source_url       TEXT,
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  source_url   TEXT            NOT NULL,
+  date_created DATETIME        NOT NULL,
+  active       BOOLEAN         NOT NULL DEFAULT TRUE,
   PRIMARY KEY (id)
 );
 

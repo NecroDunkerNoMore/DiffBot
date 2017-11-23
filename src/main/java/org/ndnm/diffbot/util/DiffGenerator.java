@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import org.ndnm.diffbot.model.CaptureType;
-import org.ndnm.diffbot.model.HtmlSnapshot;
+import org.ndnm.diffbot.model.diff.CaptureType;
+import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 
@@ -22,19 +22,19 @@ public class DiffGenerator {
         List<String> revisedFileLines = Arrays.asList(revisedPageAsString.split(MULTI_NEWLINE_REGEX));
 
         Patch patch = DiffUtils.diff(originalFileLines, revisedFileLines);
-        List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl.getSourceUrl(), originalPageAsString, revisedPageAsString, dateCaptured);
+        List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl, originalPageAsString, revisedPageAsString, dateCaptured);
 
         return new DiffResult(diffUrl, patch, htmlSnapshots, dateCaptured);
     }
 
 
-    private static List<HtmlSnapshot> createHtmlCaptures(String rawUrl, String originalPageAsString, String revisedPageAsString, Date dateCaptured) {
+    private static List<HtmlSnapshot> createHtmlCaptures(DiffUrl diffUrl, String originalPageAsString, String revisedPageAsString, Date dateCaptured) {
         List<HtmlSnapshot> htmlSnapshots = new ArrayList<>();
 
-        HtmlSnapshot preEventCapture = new HtmlSnapshot(rawUrl, originalPageAsString, CaptureType.PRE_EVENT, dateCaptured);
+        HtmlSnapshot preEventCapture = new HtmlSnapshot(diffUrl, originalPageAsString, CaptureType.PRE_EVENT, dateCaptured);
         htmlSnapshots.add(preEventCapture);
 
-        HtmlSnapshot postEventCapture = new HtmlSnapshot(rawUrl, revisedPageAsString, CaptureType.POST_EVENT, dateCaptured);
+        HtmlSnapshot postEventCapture = new HtmlSnapshot(diffUrl, revisedPageAsString, CaptureType.POST_EVENT, dateCaptured);
         htmlSnapshots.add(postEventCapture);
 
         return htmlSnapshots;

@@ -28,11 +28,12 @@ public class DiffDelta implements Serializable {
     private static final long serialVersionUID = -2395860567963108268L;
 
     private BigInteger id;
-    private DiffPatch diffPatch;//parent for orm
+    private DiffPatch diffPatch;//ORM parent
+    private List<DiffLine> diffLines;//ORM children
     private DeltaType deltaType;
     private int startPosition;
     private int endPosition;
-    private List<DiffLine> diffLines;
+
 
     @Transient
     private List<DiffLine> originalLines;
@@ -82,14 +83,10 @@ public class DiffDelta implements Serializable {
     }
 
 
-    public void addDiffLines(List<DiffLine> newDiffLines) {
-        if (this.diffLines == null) {
-            this.diffLines = new ArrayList<>();
-        }
-
-        for (DiffLine diffLine : newDiffLines) {
+    public void addDiffLines(List<DiffLine> diffLines) {
+        this.diffLines = diffLines;
+        for (DiffLine diffLine : diffLines) {
             diffLine.setDiffDelta(this);
-            diffLines.add(diffLine);
         }
     }
 
