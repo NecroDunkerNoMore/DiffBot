@@ -14,13 +14,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.ndnm.diffbot.model.diff.DiffResult;
-import org.ndnm.diffbot.model.diff.DiffUrl;
 
 @Entity
 @Table(name = "html_snapshot_t")
@@ -28,7 +26,7 @@ public class HtmlSnapshot implements Serializable {
     private static final long serialVersionUID = 8530872380652605568L;
 
     private BigInteger id;
-    private DiffUrl diffUrl;
+    private String rawUrl;
     private Date dateCaptured;
     private String rawHtml;
     private CaptureType captureType;
@@ -40,9 +38,8 @@ public class HtmlSnapshot implements Serializable {
     }
 
 
-    public HtmlSnapshot(DiffUrl diffUrl, String rawHtml, CaptureType captureType) {
-        this.diffUrl = diffUrl;
-        this.diffUrl.setHtmlSnapshot(this);
+    public HtmlSnapshot(String rawUrl, String rawHtml, CaptureType captureType) {
+        this.rawUrl = rawUrl;
         this.rawHtml = rawHtml;
         this.dateCaptured = Calendar.getInstance().getTime();
         this.captureType = captureType;
@@ -63,14 +60,13 @@ public class HtmlSnapshot implements Serializable {
 
 
 
-    @OneToOne
-    public DiffUrl getDiffUrl() {
-        return diffUrl;
+    public String getRawUrl() {
+        return rawUrl;
     }
 
 
-    public void setDiffUrl(DiffUrl diffUrl) {
-        this.diffUrl = diffUrl;
+    public void setRawUrl(String rawUrl) {
+        this.rawUrl = rawUrl;
     }
 
 

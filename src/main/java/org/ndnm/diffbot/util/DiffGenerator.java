@@ -21,19 +21,19 @@ public class DiffGenerator {
         List<String> revisedFileLines = Arrays.asList(revisedPageAsString.split(MULTI_NEWLINE_REGEX));
 
         Patch patch = DiffUtils.diff(originalFileLines, revisedFileLines);
-        List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl, originalPageAsString, revisedPageAsString);
+        List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl.getSourceUrl(), originalPageAsString, revisedPageAsString);
 
         return new DiffResult(diffUrl, patch, htmlSnapshots, Calendar.getInstance().getTime());
     }
 
 
-    private static List<HtmlSnapshot> createHtmlCaptures(DiffUrl diffUrl, String originalPageAsString, String revisedPageAsString) {
+    private static List<HtmlSnapshot> createHtmlCaptures(String rawUrl, String originalPageAsString, String revisedPageAsString) {
         List<HtmlSnapshot> htmlSnapshots = new ArrayList<>();
 
-        HtmlSnapshot preEventCapture = new HtmlSnapshot(diffUrl, originalPageAsString, CaptureType.PRE_EVENT);
+        HtmlSnapshot preEventCapture = new HtmlSnapshot(rawUrl, originalPageAsString, CaptureType.PRE_EVENT);
         htmlSnapshots.add(preEventCapture);
 
-        HtmlSnapshot postEventCapture = new HtmlSnapshot(diffUrl, revisedPageAsString, CaptureType.POST_EVENT);
+        HtmlSnapshot postEventCapture = new HtmlSnapshot(rawUrl, revisedPageAsString, CaptureType.POST_EVENT);
         htmlSnapshots.add(postEventCapture);
 
         return htmlSnapshots;
