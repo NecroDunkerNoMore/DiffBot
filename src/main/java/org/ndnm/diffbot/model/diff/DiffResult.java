@@ -31,6 +31,7 @@ public class DiffResult implements Serializable {
 
     private BigInteger id;
     private Date dateCaptured;
+    private DiffUrl diffUrl;
     private DiffPatch diffPatch;
     private List<HtmlSnapshot> htmlSnapshots;
 
@@ -45,12 +46,13 @@ public class DiffResult implements Serializable {
     }
 
 
-    public DiffResult(Patch patch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
-        this(new DiffPatch(patch, dateCaptured), htmlSnapshots, dateCaptured);
+    public DiffResult(DiffUrl diffUrl, Patch patch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
+        this(diffUrl, new DiffPatch(patch, dateCaptured), htmlSnapshots, dateCaptured);
     }
 
 
-    public DiffResult(DiffPatch diffPatch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
+    public DiffResult(DiffUrl diffUrl, DiffPatch diffPatch, List<HtmlSnapshot> htmlSnapshots, Date dateCaptured) {
+        this.diffUrl = diffUrl;
         this.diffPatch = diffPatch;
         this.diffPatch.setDiffResult(this);
         this.dateCaptured = dateCaptured;
@@ -83,24 +85,6 @@ public class DiffResult implements Serializable {
 
     public void setDateCaptured(Date dateCaptured) {
         this.dateCaptured = dateCaptured;
-    }
-
-
-    @Transient
-    public List<DiffDelta> getChangeDeltas() {
-        return diffPatch.getChangeDeltas();
-    }
-
-
-    @Transient
-    public List<DiffDelta> getInsertDeltas() {
-        return diffPatch.getInsertDeltas();
-    }
-
-
-    @Transient
-    public List<DiffDelta> getDeleteDeltas() {
-        return diffPatch.getDeleteDeltas();
     }
 
 
@@ -163,19 +147,32 @@ public class DiffResult implements Serializable {
     }
 
 
-    /*
-     * All HtmlSnapshot's under a DiffResult should have the same DiffUrl, so
-     * go with the first one found.
-     */
-    @Transient
+    @OneToOne
     public DiffUrl getDiffUrl() {
-        for (HtmlSnapshot htmlSnapshot : getHtmlSnapshots()) {
-            if (htmlSnapshot.getDiffUrl() != null) {
-                return htmlSnapshot.getDiffUrl();
-            }
-        }
+        return diffUrl;
+    }
 
-        return null;
+
+    public void setDiffUrl(DiffUrl diffUrl) {
+        this.diffUrl = diffUrl;
+    }
+
+
+    @Transient
+    public List<DiffDelta> getChangeDeltas() {
+        return diffPatch.getChangeDeltas();
+    }
+
+
+    @Transient
+    public List<DiffDelta> getInsertDeltas() {
+        return diffPatch.getInsertDeltas();
+    }
+
+
+    @Transient
+    public List<DiffDelta> getDeleteDeltas() {
+        return diffPatch.getDeleteDeltas();
     }
 
 }

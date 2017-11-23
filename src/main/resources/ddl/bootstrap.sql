@@ -11,23 +11,6 @@ CREATE TABLE diff_result_t (
 );
 
 
-CREATE TABLE diff_url_t (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  source_url TEXT,
-  PRIMARY KEY (id)
-);
-
-
-CREATE TABLE html_snapshot_t (
-  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  diff_result_id BIGINT UNSIGNED NOT NULL,
-  diff_url_id    BIGINT UNSIGNED NOT NULL,
-  date_captured  DATETIME        NOT NULL,
-  raw_html       TEXT,
-  PRIMARY KEY (id)
-);
-
-
 CREATE TABLE diff_patch_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_result_id BIGINT UNSIGNED NOT NULL,
@@ -54,6 +37,24 @@ CREATE TABLE diff_line_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_delta_id BIGINT UNSIGNED NOT NULL,
   line          TEXT            NOT NULL,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE diff_url_t (
+  id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  html_snapshot_id BIGINT UNSIGNED NOT NULL,
+  source_url       TEXT,
+  PRIMARY KEY (id)
+);
+
+
+CREATE TABLE html_snapshot_t (
+  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  diff_result_id BIGINT UNSIGNED NOT NULL,
+  diff_url_id    BIGINT UNSIGNED NOT NULL,
+  date_captured  DATETIME        NOT NULL,
+  raw_html       TEXT,
   PRIMARY KEY (id)
 );
 

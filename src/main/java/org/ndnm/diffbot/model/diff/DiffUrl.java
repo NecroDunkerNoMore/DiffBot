@@ -8,6 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.ndnm.diffbot.model.HtmlSnapshot;
@@ -56,6 +59,8 @@ public class DiffUrl implements Serializable {
     }
 
 
+    @OneToMany(targetEntity = HtmlSnapshot.class)
+    @JoinColumn(name = "html_snapshot_id", nullable = false)
     public HtmlSnapshot getHtmlSnapshot() {
         return htmlSnapshot;
     }

@@ -61,7 +61,7 @@ public class DiffLine implements Serializable {
     }
 
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     public LineType getLineType() {
         return lineType;
     }

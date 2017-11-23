@@ -14,8 +14,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -145,7 +145,7 @@ public class DiffPatch implements Serializable {
     }
 
 
-    @ManyToOne(targetEntity = DiffResult.class)
+    @OneToOne(targetEntity = DiffResult.class)
     @JoinColumn(name = "diff_result_id", nullable = false)
     public DiffResult getDiffResult() {
         return diffResult;

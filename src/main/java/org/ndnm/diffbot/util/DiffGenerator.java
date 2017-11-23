@@ -23,7 +23,7 @@ public class DiffGenerator {
         Patch patch = DiffUtils.diff(originalFileLines, revisedFileLines);
         List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl, originalPageAsString, revisedPageAsString);
 
-        return new DiffResult(patch, htmlSnapshots, Calendar.getInstance().getTime());
+        return new DiffResult(diffUrl, patch, htmlSnapshots, Calendar.getInstance().getTime());
     }
 
 
