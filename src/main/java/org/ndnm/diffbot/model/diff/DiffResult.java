@@ -5,11 +5,15 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -82,16 +86,19 @@ public class DiffResult implements Serializable {
     }
 
 
+    @Transient
     public List<DiffDelta> getChangeDeltas() {
         return diffPatch.getChangeDeltas();
     }
 
 
+    @Transient
     public List<DiffDelta> getInsertDeltas() {
         return diffPatch.getInsertDeltas();
     }
 
 
+    @Transient
     public List<DiffDelta> getDeleteDeltas() {
         return diffPatch.getDeleteDeltas();
     }
@@ -134,6 +141,7 @@ public class DiffResult implements Serializable {
     }
 
 
+    @OneToMany(targetEntity = HtmlSnapshot.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffResult")
     public List<HtmlSnapshot> getHtmlSnapshots() {
         return htmlSnapshots;
     }
@@ -144,6 +152,7 @@ public class DiffResult implements Serializable {
     }
 
 
+    @OneToOne
     public DiffPatch getDiffPatch() {
         return diffPatch;
     }
@@ -158,6 +167,7 @@ public class DiffResult implements Serializable {
      * All HtmlSnapshot's under a DiffResult should have the same DiffUrl, so
      * go with the first one found.
      */
+    @Transient
     public DiffUrl getDiffUrl() {
         for (HtmlSnapshot htmlSnapshot : getHtmlSnapshots()) {
             if (htmlSnapshot.getDiffUrl() != null) {
