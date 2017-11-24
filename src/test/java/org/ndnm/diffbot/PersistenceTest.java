@@ -43,11 +43,27 @@ public class PersistenceTest extends GeneratorTestBase {
 
         Date dateCaptured = Calendar.getInstance().getTime();
         DiffUrl diffUrl = new DiffUrl("https://example.com/foo.html");
-
         DiffResult diffResult = DiffGenerator.getDiffResult(dateCaptured, diffUrl, originalFileAsString, revisedFileAsString);
+
+        // Test CReate
         diffResultService.save(diffResult);
         DiffResult savedDiffResult = diffResultService.findById(diffResult.getId());
         Assert.assertNotNull(savedDiffResult);
+
+        // Test Update
+        Date newDate = getTruncatedDate();
+        newDate.setYear(newDate.getYear() + 20);
+        diffResult.getDiffPatch().setDateCreated(newDate);
+        diffResultService.update(diffResult);
+        DiffResult updatedDiffResult = diffResultService.findById(diffResult.getId());
+        Assert.assertTrue("Update did not persist!",
+                updatedDiffResult.getDiffPatch().getDateCreated().getTime()
+                        == newDate.getTime());
+
+        // Test Delete
+        diffResultService.delete(diffResult);
+        DiffResult deltetedDiffRestult = diffResultService.findById(diffResult.getId());
+        Assert.assertNull("Deletion failed!", deltetedDiffRestult);
     }
 
 }

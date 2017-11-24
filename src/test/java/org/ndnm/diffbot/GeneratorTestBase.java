@@ -5,6 +5,8 @@ import static org.ndnm.diffbot.util.DiffGenerator.MULTI_NEWLINE_REGEX;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
@@ -29,4 +31,15 @@ public class GeneratorTestBase {
         originalFileAsLines = Arrays.asList(originalFileAsString.split(MULTI_NEWLINE_REGEX));
         revisedFileAsLines = Arrays.asList(revisedFileAsString.split(MULTI_NEWLINE_REGEX));
     }
+
+
+    public static Date getTruncatedDate() {
+        Date date = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.MILLISECOND, 0);
+        date.setTime(calendar.getTimeInMillis());
+
+        return date;
+    }
+
 }

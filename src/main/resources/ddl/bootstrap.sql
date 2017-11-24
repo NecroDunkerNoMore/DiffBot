@@ -25,7 +25,6 @@ CREATE TABLE diff_delta_t (
   date_created   DATETIME        NOT NULL,
   start_position INT             NOT NULL,
   end_position   INT             NOT NULL,
-  source_url     TEXT,
   PRIMARY KEY (id),
   FOREIGN KEY diff_patch_id_fk (diff_patch_id) REFERENCES diff_patch_t (id)
 );
