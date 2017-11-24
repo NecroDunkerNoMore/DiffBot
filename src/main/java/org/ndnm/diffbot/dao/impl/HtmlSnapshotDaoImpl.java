@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.ndnm.diffbot.dao.HtmlSnapshotDao;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> implements HtmlSnapshotDao {
     private static final String SELECT_ALL_QUERY = "SELECT h FROM HtmlSnapshot h";
+    private static final String SELECT_BY_DIFF_ID_FK_QUERY = "SELECT h FROM HtmlSnapshot h WHERE h.diffUrl.id = :diffUrlId and h.dateCaptured in (select max(h.dateCaptured) from HtmlSnapshot)";
+
 
     @SuppressWarnings("unchecked")
     @Override
@@ -18,6 +21,24 @@ public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> i
         return getEntityManager()
                 .createQuery(SELECT_ALL_QUERY)
                 .getResultList();
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public HtmlSnapshot findLatest(DiffUrl diffUrl) {
+        List<HtmlSnapshot> htmlSnapshots = (List<HtmlSnapshot>) getEntityManager()
+                .createQuery(SELECT_BY_DIFF_ID_FK_QUERY)
+                .setParameter("diffUrlId", diffUrl.getId())
+                .getResultList();
+
+        if (htmlSnapshots.size() == 0) {
+            // This will be the case for a DiffUrl that is brand new, so doesn't
+            // have a snapshot yet.
+            return null;
+        }
+
+        return htmlSnapshots.get(0);
     }
 
 

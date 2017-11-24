@@ -21,6 +21,8 @@
 package org.ndnm.diffbot.app;
 
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -29,30 +31,34 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.AuthPollingTime;
+import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffUrl;
+import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.ndnm.diffbot.service.AuthTimeService;
 import org.ndnm.diffbot.service.DiffResultService;
+import org.ndnm.diffbot.service.DiffUrlService;
 import org.ndnm.diffbot.service.HealthCheckableService;
+import org.ndnm.diffbot.service.HtmlFetchingService;
+import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.ndnm.diffbot.service.RedditService;
 import org.ndnm.diffbot.service.RedditTimeService;
 import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.spring.SpringContext;
+import org.ndnm.diffbot.util.DiffGenerator;
 import org.ndnm.diffbot.util.TimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import net.dean.jraw.models.Listing;
-import net.dean.jraw.models.Message;
 
 
 @Component
 public class DiffBot implements HealthCheckableService {
     private static final Logger LOG = LogManager.getLogger(DiffBot.class);
     private static final long AUTH_SLEEP_INTERVAL = 10 * 1000; // 10 seconds in millis
-    private static final long SUBMISSION_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
+    private static final long DIFF_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
     private static final long OAUTH_REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes in millis
     private static final int MAX_AUTH_ATTEMPTS = 3;
-    private static final String SUMMONING_SUBJECT_TEXT = "username mention";
+    private static final String SUBSCRIBE_SUBJECT_TEXT = "subscribe";
 
     @Resource(name = "botsRedditUsername")
     private String botsRedditUsername;
@@ -61,71 +67,87 @@ public class DiffBot implements HealthCheckableService {
     private final RedditUserService redditUserService;
     private final RedditTimeService redditTimeService;
     private final AuthTimeService authTimeService;
+    private final HtmlFetchingService htmlFetchingService;
+    private final DiffUrlService diffUrlService;
+    private final HtmlSnapshotService htmlSnapshotService;
     private boolean killSwitchClick;
 
 
     @Autowired
-    public DiffBot(RedditService redditService, DiffResultService diffResultService,
-                   RedditUserService redditUserService, RedditTimeService redditTimeService, AuthTimeService authTimeService) {
+    public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditUserService redditUserService,
+                   RedditTimeService redditTimeService, AuthTimeService authTimeService, HtmlFetchingService htmlFetchingService,
+                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.redditUserService = redditUserService;
         this.redditTimeService = redditTimeService;
         this.authTimeService = authTimeService;
+        this.htmlFetchingService =  htmlFetchingService;
+        this.diffUrlService = diffUrlService;
+        this.htmlSnapshotService = htmlSnapshotService;
         this.killSwitchClick = false;
     }
 
 
     private void run() {
-
-        if (!performAuth()) {
-            LOG.fatal("Failed initial authentication, exiting!");
-            System.exit(1);
-        }
+//        if (!performAuth()) {
+//            LOG.fatal("Failed initial authentication, exiting!");
+//            System.exit(1);
+//        }
 
         while (!killSwitchClick) {
-
             LOG.info("--------------------------------------------------------------------------------");
-            LOG.info("Polling for new messages...");
-            Listing<Message> messages = getRedditService().getUnreadMessages();
+            LOG.info("Pulling all DiffUrls to iterate over...");
+            List<DiffUrl> diffUrls = getDiffUrlService().findAll();
+            LOG.info("Found %d DiffUrl(s).", diffUrls.size());
 
-            if (messages == null || messages.size() == 0) {
-                LOG.info("No new messages.");
-            } else {
-                LOG.info("Found %d message(s).", messages.size());
+            for (DiffUrl diffUrl : diffUrls) {
+                LOG.info("----------------------------------------");
+                LOG.info("Processing DiffUrl: %s", diffUrl.getSourceUrl());
 
-                for (Message message : messages) {
-                    LOG.info("----------------------------------------");
+                HtmlSnapshot lastHtmlSnapshot  = getHtmlSnapshotService().findLatest(diffUrl);
+                if (lastHtmlSnapshot == null) {
+                    LOG.info("Saving initial HtmlSnapshot for DiffUrl: '%s': ", diffUrl.getSourceUrl());
+                    processFirstTimeHtmlSnapshot(diffUrl);
+                    continue;
+                }
 
-                    // Mark as read so we don't keep processing the same message
-                    getRedditService().markMessageRead(message);
+                Date dateCaptured = Calendar.getInstance().getTime();
+                String oldHtml = lastHtmlSnapshot.getRawHtml();
+                String newHtml = getHtmlFetchingService().fetchHtml(diffUrl);
 
-                    String subject = message.getSubject();
-                    if (subject == null || !subject.equals(SUMMONING_SUBJECT_TEXT)) {
-                        LOG.info("Skipping Message(id: %s) with subject '%s'.", message.getId(), subject);
-                        continue;
-                    }
+                DiffResult diffResult = DiffGenerator.getDiffResult(dateCaptured, diffUrl, oldHtml, newHtml);
+                if (!diffResult.hasDeltas()) {
+                    LOG.info("Found no changes, continuing.");
+                    continue;
+                }
 
-                    LOG.info("Completed processing messages.");
+                LOG.info("Saving DiffResult w/ %d deltas from DiffUrl: '%s'", diffResult.getNumDeltas(), diffUrl.getSourceUrl());
+                getDiffResultService().save(diffResult);
+                LOG.info("Save compete.");
 
-                }//for
-
-            }//else
-
-            // OAuth token needs refreshing every 60 minutes
-            if (authNeedsRefreshing()) {
-                retryAuthTillSuccess();
             }
 
+            LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
+
+
             try {
-                LOG.info("Sleeping...");
-                Thread.sleep(SUBMISSION_POLLING_INTERVAL);
+                LOG.info("Sleeping for %d seconds...", DIFF_POLLING_INTERVAL);
+                Thread.sleep(DIFF_POLLING_INTERVAL);
                 LOG.info("Awake now.");
             } catch (InterruptedException e) {
                 LOG.warn("Unexpectedly woken from sleep!: " + e.getMessage());
             }
 
         }
+
+    }
+
+
+    private void processFirstTimeHtmlSnapshot(DiffUrl diffUrl) {
+        String rawHtml = getHtmlFetchingService().fetchHtml(diffUrl);
+        HtmlSnapshot newHtmlSnapshot = new HtmlSnapshot(diffUrl, rawHtml, CaptureType.PRE_EVENT, Calendar.getInstance().getTime());
+        getHtmlSnapshotService().save(newHtmlSnapshot);
     }
 
 
@@ -198,7 +220,7 @@ public class DiffBot implements HealthCheckableService {
 
     @Override
     public boolean isHealthy() {
-        return getRedditService().isHealthy();
+        return getHtmlFetchingService().isHealthy();
     }
 
 
@@ -229,6 +251,21 @@ public class DiffBot implements HealthCheckableService {
 
     private RedditService getRedditService() {
         return redditService;
+    }
+
+
+    public HtmlFetchingService getHtmlFetchingService() {
+        return htmlFetchingService;
+    }
+
+
+    public DiffUrlService getDiffUrlService() {
+        return diffUrlService;
+    }
+
+
+    public HtmlSnapshotService getHtmlSnapshotService() {
+        return htmlSnapshotService;
     }
 
 

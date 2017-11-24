@@ -180,6 +180,12 @@ public class DiffPatch implements Serializable {
     }
 
 
+    @Transient
+    public boolean hasDeltas() {
+        return getDiffDeltas() != null && !getDiffDeltas().isEmpty();
+    }
+
+
     private void initDeltaListsByType(List<DiffDelta> diffDeltas) {
         this.changeDeltas = new ArrayList<>();
         this.insertDeltas = new ArrayList<>();

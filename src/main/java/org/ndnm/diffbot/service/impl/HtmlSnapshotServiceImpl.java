@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.ndnm.diffbot.dao.HtmlSnapshotDao;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,12 @@ public class HtmlSnapshotServiceImpl implements HtmlSnapshotService {
     @Override
     public List<HtmlSnapshot> findAll() {
         return dao.findAll();
+    }
+
+
+    @Override
+    public HtmlSnapshot findLatest(DiffUrl diffUrl) {
+        return dao.findLatest(diffUrl);
     }
 
 

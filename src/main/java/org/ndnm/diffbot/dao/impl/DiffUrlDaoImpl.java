@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class DiffUrlDaoImpl extends AbstractDao<BigInteger, DiffUrl> implements DiffUrlDao {
-    private static final String SELECT_ALL_DIFF_URL_QUERY = "SELECT d FROM DiffUrl d";
+    private static final String SELECT_ALL_DIFF_URL_QUERY = "SELECT d FROM DiffUrl d where d.active = true";
 
 
     @SuppressWarnings("unchecked")//getResultList()
@@ -30,13 +30,13 @@ public class DiffUrlDaoImpl extends AbstractDao<BigInteger, DiffUrl> implements 
 
     @Override
     public void save(DiffUrl diffUrl) {
-        persist(diffUrl);
+        //persist(diffUrl);
     }
 
 
     @Override
     public void delete(DiffUrl diffUrl) {
-        diffUrl = getEntityManager().contains(diffUrl) ? diffUrl : getEntityManager().merge(diffUrl);
+        diffUrl = mergeCheck(diffUrl);
         super.delete(diffUrl);
     }
 
@@ -44,6 +44,11 @@ public class DiffUrlDaoImpl extends AbstractDao<BigInteger, DiffUrl> implements 
     @Override
     public void update(DiffUrl diffUrl) {
         super.update(diffUrl);
+    }
+
+
+    private DiffUrl mergeCheck(DiffUrl diffUrl) {
+        return getEntityManager().contains(diffUrl) ? diffUrl : getEntityManager().merge(diffUrl);
     }
 
 }

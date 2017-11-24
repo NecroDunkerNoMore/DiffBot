@@ -26,7 +26,6 @@ import org.hibernate.annotations.LazyCollectionOption;
 import difflib.Patch;
 
 
-
 @Entity
 @Table(name = "diff_result_t")
 public class DiffResult implements Serializable {
@@ -168,7 +167,7 @@ public class DiffResult implements Serializable {
 
     @LazyCollection(LazyCollectionOption.FALSE)
     @ManyToOne(targetEntity = DiffUrl.class, optional = false, cascade = CascadeType.ALL)
-    @JoinColumn(name = "diff_url_id")
+    @JoinColumn(name = "diff_url_id", updatable = false, insertable = false)
     public DiffUrl getDiffUrl() {
         return diffUrl;
     }
@@ -194,5 +193,17 @@ public class DiffResult implements Serializable {
     @Transient
     public List<DiffDelta> getDeleteDeltas() {
         return diffPatch.getDeleteDeltas();
+    }
+
+
+    @Transient
+    public int getNumDeltas() {
+        return (getDiffPatch() == null || getDiffPatch().getDiffDeltas() == null) ? 0 : getDiffPatch().getDiffDeltas().size();
+    }
+
+
+    @Transient
+    public boolean hasDeltas() {
+        return getDiffPatch() == null || getDiffPatch().hasDeltas();
     }
 }

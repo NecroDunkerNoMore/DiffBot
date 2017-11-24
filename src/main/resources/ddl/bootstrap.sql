@@ -47,7 +47,7 @@ CREATE TABLE diff_line_t (
 -- Is a child of diff_result, represents a webpage, contains page's raw HTML
 CREATE TABLE html_snapshot_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  diff_result_id BIGINT UNSIGNED NOT NULL,
+  diff_result_id BIGINT UNSIGNED,
   diff_url_id    BIGINT UNSIGNED NOT NULL,
   capture_type   VARCHAR(16)     NOT NULL,
   date_captured  DATETIME        NOT NULL,
