@@ -21,6 +21,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import difflib.Delta;
 import difflib.Patch;
 
@@ -81,6 +84,7 @@ public class DiffPatch implements Serializable {
 
 
     @OneToMany(targetEntity = DiffDelta.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffPatch")
+    @Fetch(value = FetchMode.SUBSELECT)
     public List<DiffDelta> getDiffDeltas() {
         return diffDeltas;
     }
@@ -142,8 +146,8 @@ public class DiffPatch implements Serializable {
     }
 
 
-    @OneToOne(targetEntity = DiffResult.class, optional = false)
-    @JoinColumn(name = "diff_result_id", nullable = false)
+    @OneToOne(targetEntity = DiffResult.class, cascade = CascadeType.ALL)
+    @JoinColumn(name = "diff_result_id")
     public DiffResult getDiffResult() {
         return diffResult;
     }

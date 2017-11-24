@@ -59,6 +59,7 @@ public class HtmlSnapshot implements Serializable {
 
 
     @OneToOne(targetEntity = DiffUrl.class, fetch = FetchType.EAGER)
+    @JoinColumn(name = "diff_url_id")
     public DiffUrl getDiffUrl() {
         return diffUrl;
     }
@@ -70,7 +71,7 @@ public class HtmlSnapshot implements Serializable {
 
 
     @ManyToOne(targetEntity = DiffResult.class)
-    @JoinColumn(name = "diff_result_id", nullable = false)
+    @JoinColumn(name = "diff_result_id")
     public DiffResult getDiffResult() {
         return diffResult;
     }
@@ -105,6 +106,7 @@ public class HtmlSnapshot implements Serializable {
 
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "capture_type")
     public CaptureType getCaptureType() {
         return captureType;
     }

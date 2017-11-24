@@ -23,6 +23,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import difflib.Delta;
 
 @Entity
@@ -73,6 +76,7 @@ public class DiffDelta implements Serializable {
 
 
     @OneToMany(targetEntity = DiffLine.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffDelta")
+    @Fetch(value = FetchMode.SUBSELECT)
     public List<DiffLine> getDiffLines() {
         return diffLines;
     }
@@ -92,6 +96,7 @@ public class DiffDelta implements Serializable {
 
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "delta_type")
     public DeltaType getDeltaType() {
         return deltaType;
     }
@@ -124,7 +129,7 @@ public class DiffDelta implements Serializable {
     }
 
 
-    @ManyToOne(targetEntity = DiffPatch.class)
+    @ManyToOne(targetEntity = DiffPatch.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "diff_patch_id", nullable = false)
     public DiffPatch getDiffPatch() {
         return diffPatch;

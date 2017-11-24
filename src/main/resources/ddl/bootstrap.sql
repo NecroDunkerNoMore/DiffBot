@@ -5,7 +5,7 @@ USE diffbot;
 CREATE TABLE diff_result_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_url_id   BIGINT UNSIGNED NOT NULL,
-  diff_patch_id BIGINT UNSIGNED NOT NULL,
+  diff_patch_id BIGINT UNSIGNED,
   date_captured DATETIME        NOT NULL,
   PRIMARY KEY (id)
 );
@@ -24,14 +24,13 @@ CREATE TABLE diff_patch_t (
 CREATE TABLE diff_delta_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_patch_id  BIGINT UNSIGNED NOT NULL,
-  date_created DATETIME        NOT NULL,
+  delta_type     TEXT(16)        NOT NULL,
+  date_created   DATETIME        NOT NULL,
   start_position INT             NOT NULL,
   end_position   INT             NOT NULL,
   source_url     TEXT,
   PRIMARY KEY (id),
   FOREIGN KEY diff_patch_id_fk (diff_patch_id) REFERENCES diff_patch_t (id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
 );
 
 
@@ -39,7 +38,7 @@ CREATE TABLE diff_line_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_delta_id BIGINT UNSIGNED NOT NULL,
   line          TEXT            NOT NULL,
-  line_type     VARCHAR(16)        NOT NULL,
+  line_type     VARCHAR(16)     NOT NULL,
   PRIMARY KEY (id, line_type),
   FOREIGN KEY diff_delta_id_fk (diff_delta_id) REFERENCES diff_delta_t (id)
 );
@@ -58,8 +57,9 @@ CREATE TABLE html_snapshot_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_result_id BIGINT UNSIGNED NOT NULL,
   diff_url_id    BIGINT UNSIGNED NOT NULL,
+  capture_type   VARCHAR(16)     NOT NULL,
   date_captured  DATETIME        NOT NULL,
-  raw_html       TEXT,
+  raw_html       LONGBLOB,
   PRIMARY KEY (id),
   FOREIGN KEY diff_result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
 );

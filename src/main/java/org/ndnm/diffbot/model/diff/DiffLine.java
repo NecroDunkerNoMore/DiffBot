@@ -3,10 +3,12 @@ package org.ndnm.diffbot.model.diff;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -62,6 +64,7 @@ public class DiffLine implements Serializable {
 
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "line_type")
     public LineType getLineType() {
         return lineType;
     }
@@ -72,7 +75,7 @@ public class DiffLine implements Serializable {
     }
 
 
-    @ManyToOne(targetEntity = DiffDelta.class)
+    @ManyToOne(targetEntity = DiffDelta.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "diff_delta_id", nullable = false)
     public DiffDelta getDiffDelta() {
         return diffDelta;

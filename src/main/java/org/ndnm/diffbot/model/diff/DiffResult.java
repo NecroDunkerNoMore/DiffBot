@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -85,6 +87,7 @@ public class DiffResult implements Serializable {
     }
 
 
+    @Transient
     public HtmlSnapshot getPreEventHtmlSnapshot() {
         if (preEventHtmlSnapshot == null) {
             preEventHtmlSnapshot = getHtmlCaptureByType(CaptureType.PRE_EVENT);
@@ -98,6 +101,7 @@ public class DiffResult implements Serializable {
     }
 
 
+    @Transient
     public HtmlSnapshot getPostEventHtmlSnapshot() {
         if (postEventHtmlSnapshot == null) {
             postEventHtmlSnapshot = getHtmlCaptureByType(CaptureType.POST_EVENT);
@@ -144,7 +148,7 @@ public class DiffResult implements Serializable {
 
 
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToOne(targetEntity = DiffPatch.class, optional = false)
+    @OneToOne(targetEntity = DiffPatch.class, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "diffResult")
     public DiffPatch getDiffPatch() {
         return diffPatch;
     }
@@ -163,7 +167,8 @@ public class DiffResult implements Serializable {
 
 
     @LazyCollection(LazyCollectionOption.FALSE)
-    @OneToOne(targetEntity = DiffUrl.class, optional = false)
+    @ManyToOne(targetEntity = DiffUrl.class, optional = false, cascade = CascadeType.ALL)
+    @JoinColumn(name = "diff_url_id")
     public DiffUrl getDiffUrl() {
         return diffUrl;
     }
