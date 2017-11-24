@@ -1,0 +1,81 @@
+package org.ndnm.diffbot.service.impl;
+
+import java.io.Closeable;
+import java.io.IOException;
+
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.ndnm.diffbot.model.diff.DiffUrl;
+import org.ndnm.diffbot.service.HtmlFetchingService;
+import org.springframework.stereotype.Service;
+
+
+@Service
+public class HtmlFetchingServiceImpl implements HtmlFetchingService {
+    private static Logger LOG = LogManager.getLogger(HtmlFetchingServiceImpl.class);
+
+
+    @Override
+    public String fetchHtml(DiffUrl diffUrl) {
+        return fetchHtml(diffUrl.getSourceUrl());
+    }
+
+
+    private String fetchHtml(String url) {
+        HttpGet getMethod = new HttpGet(url);
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(getMethod);
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode != HttpStatus.SC_OK) {
+                String message = String.format("Could not get page, got response code: %d!", statusCode);
+                throw new HttpResponseException(statusCode, message);
+            }
+
+            return EntityUtils.toString(response.getEntity());
+
+        } catch (HttpResponseException e) {
+            LOG.error(e.getMessage());
+        } catch (IOException e) {
+            LOG.error("Error encountered when trying to pull HTML!: %s", e.getMessage());
+        } catch (Exception e) {
+            LOG.error("Unknown exception when trying to to pull HTML!: %s", e.getMessage());
+        } finally {
+            closeHttpObjects(response);
+        }
+
+        return null;
+    }
+
+
+    @Override
+    public boolean isHealthy() {
+        String html = fetchHtml("https://google.com");
+        return html != null;
+    }
+
+
+    private void closeHttpObjects(Closeable... closeables) {
+        for (Closeable closeable : closeables) {
+            if (closeable != null) {
+                try {
+                    closeable.close();
+                } catch (IOException e) {
+                    LOG.warn("Could not close response/client!: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+
+}

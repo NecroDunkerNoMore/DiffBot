@@ -13,12 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class DiffDiffUrlServiceImpl implements DiffUrlService {
+public class DiffUrlServiceImpl implements DiffUrlService {
     private final DiffUrlDao dao;
 
 
     @Autowired
-    public DiffDiffUrlServiceImpl(DiffUrlDao dao) {
+    public DiffUrlServiceImpl(DiffUrlDao dao) {
         this.dao = dao;
     }
 
