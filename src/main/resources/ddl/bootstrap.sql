@@ -5,7 +5,6 @@ USE diffbot;
 CREATE TABLE diff_result_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_url_id   BIGINT UNSIGNED NOT NULL,
-  diff_patch_id BIGINT UNSIGNED,
   date_captured DATETIME        NOT NULL,
   PRIMARY KEY (id)
 );
@@ -13,11 +12,9 @@ CREATE TABLE diff_result_t (
 
 CREATE TABLE diff_patch_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  diff_result_id BIGINT UNSIGNED NOT NULL,
   date_captured  DATETIME        NOT NULL,
-  source_url     TEXT,
   PRIMARY KEY (id),
-  FOREIGN KEY diff_result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
+  FOREIGN KEY diff_result_id_fk (id) REFERENCES diff_result_t (id)
 );
 
 

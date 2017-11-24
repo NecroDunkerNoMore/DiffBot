@@ -146,8 +146,8 @@ public class DiffPatch implements Serializable {
     }
 
 
-    @OneToOne(targetEntity = DiffResult.class, cascade = CascadeType.ALL)
-    @JoinColumn(name = "diff_result_id")
+    @OneToOne(targetEntity = DiffResult.class)
+    @JoinColumn(name = "id")
     public DiffResult getDiffResult() {
         return diffResult;
     }
