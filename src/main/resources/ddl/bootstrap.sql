@@ -2,6 +2,7 @@ CREATE DATABASE diffbot;
 
 USE diffbot;
 
+-- Root diff table, has one diff_patch child
 CREATE TABLE diff_result_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_url_id   BIGINT UNSIGNED NOT NULL,
@@ -10,6 +11,7 @@ CREATE TABLE diff_result_t (
 );
 
 
+-- Is a child of diff_result, has set of diff_delta children
 CREATE TABLE diff_patch_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   date_captured  DATETIME        NOT NULL,
@@ -18,6 +20,7 @@ CREATE TABLE diff_patch_t (
 );
 
 
+-- Is a child of diff_patch, has set of diff_line children
 CREATE TABLE diff_delta_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_patch_id  BIGINT UNSIGNED NOT NULL,
@@ -30,6 +33,7 @@ CREATE TABLE diff_delta_t (
 );
 
 
+-- Is a child of diff_delta, contains actual text line
 CREATE TABLE diff_line_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_delta_id BIGINT UNSIGNED NOT NULL,
@@ -40,15 +44,7 @@ CREATE TABLE diff_line_t (
 );
 
 
-CREATE TABLE diff_url_t (
-  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  source_url   TEXT            NOT NULL,
-  date_created DATETIME        NOT NULL,
-  active       BOOLEAN         NOT NULL DEFAULT TRUE,
-  PRIMARY KEY (id)
-);
-
-
+-- Is a child of diff_result, represents a webpage, contains page's raw HTML
 CREATE TABLE html_snapshot_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_result_id BIGINT UNSIGNED NOT NULL,
@@ -58,6 +54,16 @@ CREATE TABLE html_snapshot_t (
   raw_html       LONGBLOB,
   PRIMARY KEY (id),
   FOREIGN KEY diff_result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
+);
+
+
+-- Is a child of diff_result and html_snapshot, represents a webpage URL
+CREATE TABLE diff_url_t (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  source_url   TEXT            NOT NULL,
+  date_created DATETIME        NOT NULL,
+  active       BOOLEAN         NOT NULL DEFAULT TRUE,
+  PRIMARY KEY (id)
 );
 
 
