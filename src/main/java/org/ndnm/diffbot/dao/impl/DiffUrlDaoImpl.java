@@ -30,7 +30,7 @@ public class DiffUrlDaoImpl extends AbstractDao<BigInteger, DiffUrl> implements 
 
     @Override
     public void save(DiffUrl diffUrl) {
-        //persist(diffUrl);
+        persist(diffUrl);
     }
 
 
