@@ -132,7 +132,7 @@ public class DiffBot implements HealthCheckableService {
 
 
             try {
-                LOG.info("Sleeping for %d seconds...", DIFF_POLLING_INTERVAL);
+                LOG.info("Sleeping for %d seconds...", DIFF_POLLING_INTERVAL/1000);
                 Thread.sleep(DIFF_POLLING_INTERVAL);
                 LOG.info("Awake now.");
             } catch (InterruptedException e) {
@@ -146,7 +146,7 @@ public class DiffBot implements HealthCheckableService {
 
     private void processFirstTimeHtmlSnapshot(DiffUrl diffUrl) {
         String rawHtml = getHtmlFetchingService().fetchHtml(diffUrl);
-        HtmlSnapshot newHtmlSnapshot = new HtmlSnapshot(diffUrl, rawHtml, CaptureType.PRE_EVENT, Calendar.getInstance().getTime());
+        HtmlSnapshot newHtmlSnapshot = new HtmlSnapshot(diffUrl, rawHtml, CaptureType.POST_EVENT, Calendar.getInstance().getTime());
         getHtmlSnapshotService().save(newHtmlSnapshot);
     }
 
