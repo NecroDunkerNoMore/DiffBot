@@ -19,7 +19,8 @@ public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> i
                     "(SELECT MAX(j.dateCaptured) " +
                     "FROM HtmlSnapshot j " +
                     "WHERE j.diffUrl.id = :diffUrlId " +
-                    "AND j.captureType = :captureType)";
+                    "AND j.captureType = :captureType) " +
+             "AND h.captureType = :captureType";
 
 
     @SuppressWarnings("unchecked")
@@ -37,6 +38,7 @@ public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> i
         List<HtmlSnapshot> htmlSnapshots = (List<HtmlSnapshot>) getEntityManager()
                 .createQuery(SELECT_BY_DIFF_ID_FK_QUERY)
                 .setParameter("diffUrlId", diffUrl.getId())
+                .setParameter("captureType", CaptureType.POST_EVENT)
                 .setParameter("captureType", CaptureType.POST_EVENT)
                 .getResultList();
 
