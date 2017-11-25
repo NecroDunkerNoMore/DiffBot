@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import org.ndnm.diffbot.dao.HtmlSnapshotDao;
+import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> implements HtmlSnapshotDao {
     private static final String SELECT_ALL_QUERY = "SELECT h FROM HtmlSnapshot h";
-    private static final String SELECT_BY_DIFF_ID_FK_QUERY = "SELECT h FROM HtmlSnapshot h WHERE h.diffUrl.id = :diffUrlId and h.dateCaptured in (select max(h.dateCaptured) from HtmlSnapshot)";
+    private static final String SELECT_BY_DIFF_ID_FK_QUERY =
+            "SELECT h FROM HtmlSnapshot h " +
+            "WHERE h.diffUrl.id = :diffUrlId " +
+            "and h.captureType = :captureType " +
+            "and h.dateCaptured in " +
+            "(select max(h.dateCaptured) from HtmlSnapshot)";
 
 
     @SuppressWarnings("unchecked")
@@ -30,6 +36,7 @@ public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> i
         List<HtmlSnapshot> htmlSnapshots = (List<HtmlSnapshot>) getEntityManager()
                 .createQuery(SELECT_BY_DIFF_ID_FK_QUERY)
                 .setParameter("diffUrlId", diffUrl.getId())
+                .setParameter("captureType", CaptureType.POST_EVENT)
                 .getResultList();
 
         if (htmlSnapshots.size() == 0) {
