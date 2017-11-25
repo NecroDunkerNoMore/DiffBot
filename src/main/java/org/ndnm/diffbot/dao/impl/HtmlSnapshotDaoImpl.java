@@ -15,10 +15,11 @@ public class HtmlSnapshotDaoImpl extends AbstractDao<BigInteger, HtmlSnapshot> i
     private static final String SELECT_ALL_QUERY = "SELECT h FROM HtmlSnapshot h";
     private static final String SELECT_BY_DIFF_ID_FK_QUERY =
             "SELECT h FROM HtmlSnapshot h " +
-            "WHERE h.diffUrl.id = :diffUrlId " +
-            "and h.captureType = :captureType " +
-            "and h.dateCaptured in " +
-            "(select max(h.dateCaptured) from HtmlSnapshot)";
+             "WHERE h.dateCaptured = " +
+                    "(SELECT MAX(j.dateCaptured) " +
+                    "FROM HtmlSnapshot j " +
+                    "WHERE j.diffUrl.id = :diffUrlId " +
+                    "AND j.captureType = :captureType)";
 
 
     @SuppressWarnings("unchecked")
