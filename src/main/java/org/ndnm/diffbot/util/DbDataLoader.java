@@ -1,12 +1,7 @@
-package org.ndnm.diffbot;
+package org.ndnm.diffbot.util;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,8 +12,6 @@ import java.util.Scanner;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,10 +36,10 @@ public class DbDataLoader {
     }
 
 
-    private void fireAllScripts() {
+    public void fireAllScripts() {
         teardownDb();
         bootstrapDb();
-        loadDummyDiffResults();
+        loadDummyDiffUrls();
     }
 
 
@@ -65,46 +58,13 @@ public class DbDataLoader {
     }
 
 
-    private void loadDummyDiffResults() {
-        executeSqlStatements(getDummyDiffResultSqlStatements(), getDataSource());
+    private void loadDummyDiffUrls() {
+        executeSqlStatements(getDiffUrlStatements(), getDataSource());
     }
 
 
-    public void loadDummyDiffUrls() {
-        executeSqlStatements(getDummyUrlSqlStatements(), getDataSource());
-    }
-
-
-    public void loadScrapedUrls() {
-        try {
-            executeSqlStatements(getScrapedUrlStatements(), getDataSource());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private List<String> getScrapedUrlStatements() throws IOException {
-        InputStream fileInputStream;
-        try {
-            fileInputStream = new FileInputStream("src/test/resources/sql/scraped_url_t.sql.tgz");
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        TarArchiveInputStream tarArchiveInputStream;
-        try {
-            tarArchiveInputStream = new TarArchiveInputStream(new GzipCompressorInputStream(fileInputStream));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Have to do this to advance to the one and only file in the archive
-        tarArchiveInputStream.getNextTarEntry();
-
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(tarArchiveInputStream));
-
-        return getSqlStatements(bufferedReader);
+    private List<String> getDiffUrlStatements() {
+        return getSqlStatements("src/main/resources/sql/diff_url_t.sql");
     }
 
 
@@ -115,16 +75,6 @@ public class DbDataLoader {
 
     private List<String> getBootstrapSqlStatements() {
         return getSqlStatements("src/main/resources/ddl/bootstrap.sql");
-    }
-
-
-    private List<String> getDummyDiffResultSqlStatements() {
-        return getSqlStatements("src/test/resources/sql/diff_result_t-dummyData.sql");
-    }
-
-
-    private List<String> getDummyUrlSqlStatements() {
-        return getSqlStatements("src/test/resources/sql/diffbot_url_t-dummyData.sql");
     }
 
 
