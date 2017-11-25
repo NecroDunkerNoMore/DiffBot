@@ -173,7 +173,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>${apache-commons-compress-version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.htmlcleaner</groupId>
