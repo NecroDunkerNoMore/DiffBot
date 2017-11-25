@@ -5,7 +5,7 @@ USE diffbot;
 -- Root diff table, has one diff_patch child
 CREATE TABLE diff_result_t (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  diff_url_id   BIGINT UNSIGNED NOT NULL,
+  diff_url_id   BIGINT UNSIGNED,
   date_captured DATETIME        NOT NULL,
   PRIMARY KEY (id)
 );
@@ -48,7 +48,7 @@ CREATE TABLE diff_line_t (
 CREATE TABLE html_snapshot_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   diff_result_id BIGINT UNSIGNED,
-  diff_url_id    BIGINT UNSIGNED NOT NULL,
+  diff_url_id    BIGINT UNSIGNED,
   capture_type   VARCHAR(16)     NOT NULL,
   date_captured  DATETIME        NOT NULL,
   raw_html       LONGBLOB,

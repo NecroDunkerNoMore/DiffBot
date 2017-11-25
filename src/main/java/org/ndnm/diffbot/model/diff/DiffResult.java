@@ -166,8 +166,8 @@ public class DiffResult implements Serializable {
 
 
     @LazyCollection(LazyCollectionOption.FALSE)
-    @ManyToOne(targetEntity = DiffUrl.class, optional = false, cascade = CascadeType.ALL)
-    @JoinColumn(name = "diff_url_id", updatable = false, insertable = false)
+    @ManyToOne(targetEntity = DiffUrl.class, cascade = CascadeType.ALL)
+    @JoinColumn(name = "diff_url_id")
     public DiffUrl getDiffUrl() {
         return diffUrl;
     }

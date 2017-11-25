@@ -4,6 +4,7 @@ import java.math.BigInteger;
 
 import org.ndnm.diffbot.dao.DiffResultDao;
 import org.ndnm.diffbot.model.diff.DiffResult;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.springframework.stereotype.Repository;
 
 
@@ -18,6 +19,12 @@ public class DiffResultDaoImpl extends AbstractDao<BigInteger, DiffResult> imple
 
     @Override
     public void save(DiffResult diffResult) {
+        DiffUrl diffUrl = diffResult.getDiffUrl();
+        if (diffUrl != null && diffUrl.getId() != null) {
+            diffUrl = getEntityManager().contains(diffUrl) ? diffUrl : getEntityManager().merge(diffUrl);
+            diffResult.setDiffUrl(diffUrl);
+        }
+
         persist(diffResult);
     }
 

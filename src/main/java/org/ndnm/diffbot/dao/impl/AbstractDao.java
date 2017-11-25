@@ -9,7 +9,7 @@ import javax.persistence.PersistenceContext;
 public abstract class AbstractDao<PK extends Serializable, T> {
 
     @PersistenceContext
-    EntityManager entityManager;
+    private EntityManager entityManager;
     private final Class<T> persistentClass;
 
 
