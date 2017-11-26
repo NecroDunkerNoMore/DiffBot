@@ -46,6 +46,7 @@ import org.ndnm.diffbot.service.RedditTimeService;
 import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.spring.SpringContext;
 import org.ndnm.diffbot.util.DiffGenerator;
+import org.ndnm.diffbot.util.RedditPostFormatter;
 import org.ndnm.diffbot.util.TimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,6 @@ public class DiffBot implements HealthCheckableService {
     private static final long DIFF_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
     private static final long OAUTH_REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes in millis
     private static final int MAX_AUTH_ATTEMPTS = 3;
-    private static final String SUBSCRIBE_SUBJECT_TEXT = "subscribe";
 
     @Resource(name = "botsRedditUsername")
     private String botsRedditUsername;
@@ -70,13 +70,14 @@ public class DiffBot implements HealthCheckableService {
     private final HtmlFetchingService htmlFetchingService;
     private final DiffUrlService diffUrlService;
     private final HtmlSnapshotService htmlSnapshotService;
+    private final RedditPostFormatter redditPostFormatter;
     private boolean killSwitchClick;
 
 
     @Autowired
     public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditUserService redditUserService,
                    RedditTimeService redditTimeService, AuthTimeService authTimeService, HtmlFetchingService htmlFetchingService,
-                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService) {
+                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService, RedditPostFormatter redditPostFormatter) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.redditUserService = redditUserService;
@@ -85,15 +86,16 @@ public class DiffBot implements HealthCheckableService {
         this.htmlFetchingService =  htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
+        this.redditPostFormatter = redditPostFormatter;
         this.killSwitchClick = false;
     }
 
 
     private void run() {
-//        if (!performAuth()) {
-//            LOG.fatal("Failed initial authentication, exiting!");
-//            System.exit(1);
-//        }
+        if (!performAuth()) {
+            LOG.fatal("Failed initial authentication, exiting!");
+            System.exit(1);
+        }
 
         while (!killSwitchClick) {
             LOG.info("--------------------------------------------------------------------------------");
@@ -122,14 +124,25 @@ public class DiffBot implements HealthCheckableService {
                     continue;
                 }
 
+                LOG.info("********************************************************************************");
                 LOG.info("Saving DiffResult w/ %d deltas from DiffUrl: '%s'", diffResult.getNumDeltas(), diffUrl.getSourceUrl());
                 getDiffResultService().save(diffResult);
-                LOG.info("Save compete.");
+                LOG.info("Save complete.");
+
+                LOG.info("********************************************************************************");
+                LOG.info("Posting DiffResult to reddit...");
+                getRedditService().postDiffResult(diffResult);
+                LOG.info("Posting complete.");
+                //notifySubscribers(diffResult);
 
             }
 
             LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
 
+            // OAuth token needs refreshing every 60 minutes
+            if (authNeedsRefreshing()) {
+                retryAuthTillSuccess();
+            }
 
             try {
                 LOG.info("Sleeping for %d seconds...", DIFF_POLLING_INTERVAL/1000);
@@ -142,6 +155,7 @@ public class DiffBot implements HealthCheckableService {
         }
 
     }
+
 
 
     private void processFirstTimeHtmlSnapshot(DiffUrl diffUrl) {
@@ -196,13 +210,13 @@ public class DiffBot implements HealthCheckableService {
 
     private void deliverDiffResult(List<DiffResult> diffResults) {
         LOG.info("Making reddit post for %d events...", diffResults.size());
-        getRedditService().postDiffResults(diffResults);
+        //getRedditService().postDiffResults(diffResults);
         LOG.info("Completed reddit posting events.");
     }
 
 
-    protected boolean performAuth() {
-        LOG.info("********************************************************************************");
+    private boolean performAuth() {
+        LOG.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         LOG.info("Attempting reddit authentication...");
         AuthPollingTime time = new AuthPollingTime();
         time.setDate(TimeUtils.getTimeGmt());
@@ -224,17 +238,17 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    protected boolean isAuthenticated() {
+    private boolean isAuthenticated() {
         return getRedditService().isAuthenticated();
     }
 
 
-    public DiffResultService getDiffResultService() {
+    private DiffResultService getDiffResultService() {
         return diffResultService;
     }
 
 
-    public RedditUserService getRedditUserService() {
+    private RedditUserService getRedditUserService() {
         return redditUserService;
     }
 
@@ -244,7 +258,7 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    public AuthTimeService getAuthTimeService() {
+    private AuthTimeService getAuthTimeService() {
         return authTimeService;
     }
 
@@ -254,22 +268,22 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    public HtmlFetchingService getHtmlFetchingService() {
+    private HtmlFetchingService getHtmlFetchingService() {
         return htmlFetchingService;
     }
 
 
-    public DiffUrlService getDiffUrlService() {
+    private DiffUrlService getDiffUrlService() {
         return diffUrlService;
     }
 
 
-    public HtmlSnapshotService getHtmlSnapshotService() {
+    private HtmlSnapshotService getHtmlSnapshotService() {
         return htmlSnapshotService;
     }
 
 
-    public void resetKillSwitch() {
+    private void resetKillSwitch() {
         this.killSwitchClick = false;
     }
 

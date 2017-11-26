@@ -21,7 +21,8 @@
 
 package org.ndnm.diffbot.service.impl;
 
-import java.util.List;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,13 +33,16 @@ import org.ndnm.diffbot.util.RedditPostFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import net.dean.jraw.ApiException;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.fluent.AuthenticatedUserReference;
 import net.dean.jraw.fluent.FluentRedditClient;
 import net.dean.jraw.fluent.InboxReference;
+import net.dean.jraw.fluent.SubredditReference;
 import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Listing;
 import net.dean.jraw.models.Message;
+import net.dean.jraw.models.Submission;
 import net.dean.jraw.paginators.InboxPaginator;
 
 
@@ -73,11 +77,37 @@ public class RedditServiceImpl implements RedditService {
 
 
     @Override
-    public void postDiffResults(List<DiffResult> diffResults) {
+    public void postDiffResult(DiffResult diffResult) {
+        FluentRedditClient fluentClient = new FluentRedditClient(redditClient);
+        SubredditReference subredditReference = fluentClient.subreddit("TheEssaysChanged");
+
+        URL submissionLink;
+        try {
+            submissionLink = new URL(diffResult.getDiffUrl().toString());
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Bad url: " + e.getMessage());
+        }
+
+        String submissionTitle = redditPostFormatter.formatPostTitle(diffResult);
+
+        Submission submission;
+        try {
+            submission = subredditReference.submit(submissionLink, submissionTitle);
+        } catch (ApiException e) {
+            throw new RuntimeException("Could not post to redddit: " + e.getExplanation());
+        }
+
+        makeCommentOnNewPost(submission, diffResult);
+    }
+
+
+    private void makeCommentOnNewPost(Submission submission, DiffResult diffResult) {
+        String commentBody = redditPostFormatter.formatCommentBody(diffResult);
         AccountManager accountManager = new AccountManager(redditClient);
         try {
-
+            accountManager.reply(submission, commentBody);
         } catch (Exception e) {
+            LOG.error("Could not post reply to summons (url: %d): %s", submission.getUrl(), e.getMessage());
         }
     }
 

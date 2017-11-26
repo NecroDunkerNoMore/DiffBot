@@ -21,8 +21,6 @@
 package org.ndnm.diffbot.service;
 
 
-import java.util.List;
-
 import org.ndnm.diffbot.model.diff.DiffResult;
 
 import net.dean.jraw.models.Listing;
@@ -33,7 +31,7 @@ public interface RedditService extends HealthCheckableService {
 
     boolean isAuthenticated();
 
-    void postDiffResults(List<DiffResult> diffResults);
+    void postDiffResult(DiffResult diffResult);
 
     Listing<Message> getUnreadMessages();
 
