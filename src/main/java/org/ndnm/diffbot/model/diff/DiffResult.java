@@ -209,7 +209,7 @@ public class DiffResult implements Serializable {
 
 
     @Transient
-    public int getTotalNumLineDifferences() {
-        return getDiffPatch().getTotalNumLineDifferences();
+    public int getTotalLinesAffected() {
+        return getDiffPatch().getTotalLinesAffected();
     }
 }

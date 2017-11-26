@@ -47,7 +47,7 @@ public class DiffDelta implements Serializable {
     @Transient
     private List<DiffLine> revisedLines;
     @Transient
-    private int totalNumLineDifferences;
+    private int totalLinesAffected;
 
 
     public DiffDelta() {
@@ -60,7 +60,7 @@ public class DiffDelta implements Serializable {
         this.startPosition = initStartPositionByType(delta);
         this.endPosition = initEndPositionByType(delta);
         this.dateCreated = dateCreated;
-        totalNumLineDifferences = 0;
+        totalLinesAffected = 0;
         initLines(delta);
     }
 
@@ -87,15 +87,6 @@ public class DiffDelta implements Serializable {
 
     public void setDiffLines(List<DiffLine> diffLines) {
         this.diffLines = diffLines;
-    }
-
-
-    public void addDiffLines(List<DiffLine> diffLines) {
-        this.diffLines = diffLines;
-        for (DiffLine diffLine : diffLines) {
-            totalNumLineDifferences++;
-            diffLine.setDiffDelta(this);
-        }
     }
 
 
@@ -180,8 +171,8 @@ public class DiffDelta implements Serializable {
 
 
     @Transient
-    public int getTotalNumLineDifferences() {
-        return totalNumLineDifferences;
+    public int getTotalLinesAffected() {
+        return totalLinesAffected;
     }
 
 
@@ -197,6 +188,7 @@ public class DiffDelta implements Serializable {
 
         for (DiffLine diffLine : diffLines) {
             diffLine.setDiffDelta(this);
+            totalLinesAffected++;
         }
     }
 

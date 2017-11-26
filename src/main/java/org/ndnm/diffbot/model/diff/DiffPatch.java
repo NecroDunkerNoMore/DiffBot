@@ -45,7 +45,7 @@ public class DiffPatch implements Serializable {
     @Transient
     private List<DiffDelta> deleteDeltas;
     @Transient
-    private int totalNumLineDifferences;
+    private int totalLinesAffected;
 
 
     public DiffPatch() {
@@ -56,7 +56,7 @@ public class DiffPatch implements Serializable {
     @SuppressWarnings("unchecked")//patch.getDeltas()
     public DiffPatch(Patch patch, Date dateCreated) {
         this.dateCreated = dateCreated;
-        totalNumLineDifferences = 0;
+        totalLinesAffected = 0;
         initLists(patch.getDeltas());
     }
 
@@ -103,7 +103,7 @@ public class DiffPatch implements Serializable {
         this.diffDeltas = diffDeltas;
         for (DiffDelta diffDelta : diffDeltas) {
             diffDelta.setDiffPatch(this);
-            totalNumLineDifferences += diffDelta.getTotalNumLineDifferences();
+            totalLinesAffected += diffDelta.getTotalLinesAffected();
         }
     }
 
@@ -163,8 +163,8 @@ public class DiffPatch implements Serializable {
 
 
     @Transient
-    public int getTotalNumLineDifferences() {
-        return totalNumLineDifferences;
+    public int getTotalLinesAffected() {
+        return totalLinesAffected;
     }
 
 
