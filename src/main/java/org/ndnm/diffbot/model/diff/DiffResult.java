@@ -206,4 +206,10 @@ public class DiffResult implements Serializable {
     public boolean hasDeltas() {
         return getDiffPatch() == null || getDiffPatch().hasDeltas();
     }
+
+
+    @Transient
+    public int getTotalNumLineDifferences() {
+        return getDiffPatch().getTotalNumLineDifferences();
+    }
 }

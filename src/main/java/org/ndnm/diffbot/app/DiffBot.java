@@ -25,8 +25,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +44,6 @@ import org.ndnm.diffbot.service.RedditTimeService;
 import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.spring.SpringContext;
 import org.ndnm.diffbot.util.DiffGenerator;
-import org.ndnm.diffbot.util.RedditPostFormatter;
 import org.ndnm.diffbot.util.TimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -60,8 +57,6 @@ public class DiffBot implements HealthCheckableService {
     private static final long OAUTH_REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes in millis
     private static final int MAX_AUTH_ATTEMPTS = 3;
 
-    @Resource(name = "botsRedditUsername")
-    private String botsRedditUsername;
     private final RedditService redditService;
     private final DiffResultService diffResultService;
     private final RedditUserService redditUserService;
@@ -70,14 +65,13 @@ public class DiffBot implements HealthCheckableService {
     private final HtmlFetchingService htmlFetchingService;
     private final DiffUrlService diffUrlService;
     private final HtmlSnapshotService htmlSnapshotService;
-    private final RedditPostFormatter redditPostFormatter;
     private boolean killSwitchClick;
 
 
     @Autowired
     public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditUserService redditUserService,
                    RedditTimeService redditTimeService, AuthTimeService authTimeService, HtmlFetchingService htmlFetchingService,
-                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService, RedditPostFormatter redditPostFormatter) {
+                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.redditUserService = redditUserService;
@@ -86,7 +80,6 @@ public class DiffBot implements HealthCheckableService {
         this.htmlFetchingService =  htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
-        this.redditPostFormatter = redditPostFormatter;
         this.killSwitchClick = false;
     }
 

@@ -46,7 +46,6 @@ import net.dean.jraw.models.Submission;
 import net.dean.jraw.paginators.InboxPaginator;
 
 
-
 @Service
 public class RedditServiceImpl implements RedditService {
     private static final Logger LOG = LogManager.getLogger(RedditServiceImpl.class);
@@ -114,29 +113,10 @@ public class RedditServiceImpl implements RedditService {
 
     @Override
     public Listing<Message> getUnreadMessages() {
-
-        FluentRedditClient client;
-        try {
-            client = new FluentRedditClient(redditClient);
-        } catch (Exception e) {
-            LOG.error("Could not instantiate fluent client to check mail: %s", e.getMessage());
-            return new Listing<>(Message.class);
-        }
-
-        AuthenticatedUserReference userRef;
-        try {
-            userRef = client.me();
-        } catch (Exception e) {
-            LOG.error("Could not get self user-ref: %s", e.getMessage());
-            return new Listing<>(Message.class);
-        }
-
-        InboxReference inbox;
-        try {
-            inbox = userRef.inbox();
-        } catch (Exception e) {
-            LOG.error("Could not get reference to inbox: %s", e.getMessage());
-            return new Listing<>(Message.class);
+        InboxReference inbox = getInbox();
+        if (inbox == null) {
+            // Logged error occurred in getInbox()
+            return null;
         }
 
         InboxPaginator inboxPaginator;
@@ -162,30 +142,9 @@ public class RedditServiceImpl implements RedditService {
 
     @Override
     public void markMessageRead(Message message) {
-        FluentRedditClient client;
-        try {
-            client = new FluentRedditClient(redditClient);
-        } catch (Exception e) {
-            LOG.error("Could not get fluent client to mark message with id(%s) as read: %s",
-                    message.getId(), e.getMessage());
-            return;
-        }
-
-        AuthenticatedUserReference userRef;
-        try {
-            userRef = client.me();
-        } catch (Exception e) {
-            LOG.error("Could not get self user-ref while marking message with id(%s) as read: %s",
-                    message.getId(), e.getMessage());
-            return;
-        }
-
-        InboxReference inbox;
-        try {
-            inbox = userRef.inbox();
-        } catch (Exception e) {
-            LOG.error("Could not get inbox reference while marking message with id(%s) as read: %s",
-                    message.getId(), e.getMessage());
+        InboxReference inbox = getInbox();
+        if (inbox == null) {
+            // Logged error occurred in getInbox()
             return;
         }
 
@@ -194,6 +153,35 @@ public class RedditServiceImpl implements RedditService {
         } catch (Exception e) {
             LOG.error("Could not mark message with id(%s) as read: %s", message.getId(), e.getMessage());
         }
+    }
+
+
+    private InboxReference getInbox() {
+        FluentRedditClient client;
+        try {
+            client = new FluentRedditClient(redditClient);
+        } catch (Exception e) {
+            LOG.error("Could not get fluent client to mark message with id(%s) as read: %s", e.getMessage());
+            return null;
+        }
+
+        AuthenticatedUserReference userRef;
+        try {
+            userRef = client.me();
+        } catch (Exception e) {
+            LOG.error("Could not get self user-ref while marking message with id(%s) as read: %s", e.getMessage());
+            return null;
+        }
+
+        InboxReference inbox;
+        try {
+            inbox = userRef.inbox();
+        } catch (Exception e) {
+            LOG.error("Could not get inbox reference while marking message with id(%s) as read: %s", e.getMessage());
+            return null;
+        }
+
+        return inbox;
     }
 
 
