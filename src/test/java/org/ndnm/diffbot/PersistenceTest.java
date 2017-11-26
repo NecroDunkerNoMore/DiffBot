@@ -1,7 +1,6 @@
 package org.ndnm.diffbot;
 
 import java.math.BigInteger;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.After;
@@ -18,6 +17,7 @@ import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.ndnm.diffbot.spring.SpringContext;
 import org.ndnm.diffbot.util.DbDataLoader;
 import org.ndnm.diffbot.util.DiffGenerator;
+import org.ndnm.diffbot.util.TimeUtils;
 
 
 public class PersistenceTest extends GeneratorTestBase {
@@ -71,7 +71,7 @@ public class PersistenceTest extends GeneratorTestBase {
     public void testDiffResultCrud() {
         DiffResultService diffResultService = SpringContext.getBean(DiffResultService.class);
 
-        Date dateCaptured = Calendar.getInstance().getTime();
+        Date dateCaptured = TimeUtils.getTimeGmt();
         DiffUrl diffUrl = new DiffUrl("https://example.com/foo.html");
         DiffResult diffResult = DiffGenerator.getDiffResult(dateCaptured, diffUrl, originalFileAsString, revisedFileAsString);
 
@@ -97,6 +97,7 @@ public class PersistenceTest extends GeneratorTestBase {
     }
 
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testHtmlSnapshot() {
         HtmlSnapshotService htmlSnapshotService = SpringContext.getBean(HtmlSnapshotService.class);
@@ -116,7 +117,7 @@ public class PersistenceTest extends GeneratorTestBase {
         // Create a distinct snapshot that's easily recognized.
         String rawHtml = "Latest snapshot here.";
         CaptureType captureType = CaptureType.POST_EVENT;
-        Date dateCaptured = Calendar.getInstance().getTime();
+        Date dateCaptured = TimeUtils.getTimeGmt();
         dateCaptured.setSeconds(dateCaptured.getSeconds() + fauxSeconds++);
         dateCaptured.setYear(dateCaptured.getYear()+10);
         HtmlSnapshot htmlSnapshot = new HtmlSnapshot(savedDiffUrl, rawHtml, captureType, dateCaptured);
@@ -129,9 +130,10 @@ public class PersistenceTest extends GeneratorTestBase {
     }
 
 
+    @SuppressWarnings("deprecation")
     private HtmlSnapshot getRandomHtmlSnapshot(DiffUrl diffUrl, CaptureType captureType) {
         String rawHtml = generateRandomString(100);
-        Date dateCaptured = Calendar.getInstance().getTime();
+        Date dateCaptured = TimeUtils.getTimeGmt();
         dateCaptured.setSeconds(dateCaptured.getSeconds() + fauxSeconds++);
 
         return new HtmlSnapshot(diffUrl, rawHtml, captureType, dateCaptured);

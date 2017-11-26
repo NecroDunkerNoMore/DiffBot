@@ -1,6 +1,5 @@
 package org.ndnm.diffbot;
 
-import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +11,7 @@ import org.ndnm.diffbot.model.diff.DiffLine;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.util.DiffGenerator;
+import org.ndnm.diffbot.util.TimeUtils;
 
 
 public class DiffingTest extends GeneratorTestBase {
@@ -20,7 +20,7 @@ public class DiffingTest extends GeneratorTestBase {
 
     @BeforeClass
     public static void initDiffResult() {
-        diffResult = DiffGenerator.getDiffResult(Calendar.getInstance().getTime(),
+        diffResult = DiffGenerator.getDiffResult(TimeUtils.getTimeGmt(),
                                                  new DiffUrl(), originalFileAsString, revisedFileAsString);
     }
 

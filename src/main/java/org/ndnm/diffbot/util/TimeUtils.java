@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class TimeUtils {
-    public static final TimeZone GMT_TIME_ZONE = TimeZone.getTimeZone("GMT");
+    private static final TimeZone GMT_TIME_ZONE = TimeZone.getTimeZone("GMT");
     private static final SimpleDateFormat DATE_FORMAT;
     static {
         DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
@@ -20,9 +20,13 @@ public class TimeUtils {
 
 
     public static Date getTimeGmt() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeZone(GMT_TIME_ZONE);
-        return cal.getTime();
+        return getGmtCalendar().getTime();
     }
 
+
+    public static Calendar getGmtCalendar() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(GMT_TIME_ZONE);
+        return cal;
+    }
 }

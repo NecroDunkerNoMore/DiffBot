@@ -21,7 +21,6 @@
 package org.ndnm.diffbot.app;
 
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -107,7 +106,7 @@ public class DiffBot implements HealthCheckableService {
                     continue;
                 }
 
-                Date dateCaptured = Calendar.getInstance().getTime();
+                Date dateCaptured = TimeUtils.getTimeGmt();
                 String oldHtml = lastHtmlSnapshot.getRawHtml();
                 String newHtml = getHtmlFetchingService().fetchHtml(diffUrl);
 
@@ -153,7 +152,7 @@ public class DiffBot implements HealthCheckableService {
 
     private void processFirstTimeHtmlSnapshot(DiffUrl diffUrl) {
         String rawHtml = getHtmlFetchingService().fetchHtml(diffUrl);
-        HtmlSnapshot newHtmlSnapshot = new HtmlSnapshot(diffUrl, rawHtml, CaptureType.POST_EVENT, Calendar.getInstance().getTime());
+        HtmlSnapshot newHtmlSnapshot = new HtmlSnapshot(diffUrl, rawHtml, CaptureType.POST_EVENT, TimeUtils.getTimeGmt());
         getHtmlSnapshotService().save(newHtmlSnapshot);
     }
 

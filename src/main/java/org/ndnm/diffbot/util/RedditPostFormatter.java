@@ -37,7 +37,7 @@ public class RedditPostFormatter {
         generateChangeDeltaSection(diffResult);
         generateInsertDeltaSection(diffResult);
         generateDeleteDeltaSection(diffResult);
-        generateFooter(diffResult);
+        generateFooter();
 
         String body = stringBuilder.toString();
         stringBuilder = new StringBuilder();
@@ -133,7 +133,7 @@ public class RedditPostFormatter {
     }
 
 
-    private void generateFooter(DiffResult diffResult) {
+    private void generateFooter() {
         addLineWithTwoNewlines(REDDIT_LINE);
         addLineWithTwoNewlines(String.format(FOOTER, getDiffBotVersion()));
     }

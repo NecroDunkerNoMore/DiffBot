@@ -2,7 +2,6 @@ package org.ndnm.diffbot.model.diff;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Calendar;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -13,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.ndnm.diffbot.util.TimeUtils;
 
 @Entity
 @Table(name = "diff_url_t")
@@ -32,7 +33,7 @@ public class DiffUrl implements Serializable {
 
     public DiffUrl(String sourceUrl) {
         this.sourceUrl = sourceUrl;
-        this.dateCreated = Calendar.getInstance().getTime();
+        this.dateCreated = TimeUtils.getTimeGmt();
         this.active = true;
     }
 

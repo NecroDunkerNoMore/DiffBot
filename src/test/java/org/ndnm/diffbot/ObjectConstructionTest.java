@@ -1,6 +1,5 @@
 package org.ndnm.diffbot;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -8,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.ndnm.diffbot.model.diff.DeltaType;
 import org.ndnm.diffbot.model.diff.DiffDelta;
+import org.ndnm.diffbot.util.TimeUtils;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -19,9 +19,10 @@ public class ObjectConstructionTest extends GeneratorTestBase {
 
     @Test
     public void testDiffDeltaConstruction() {
-        Date dateCreated = Calendar.getInstance().getTime();
+        Date dateCreated = TimeUtils.getTimeGmt();
         Patch patch = DiffUtils.diff(originalFileAsLines, revisedFileAsLines);
 
+        @SuppressWarnings("unchecked")
         List<Delta> deltas = patch.getDeltas();
         for (Delta delta : deltas) {
             DiffDelta diffDelta = new DiffDelta(delta, dateCreated);

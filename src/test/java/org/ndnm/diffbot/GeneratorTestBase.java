@@ -15,6 +15,7 @@ import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.ndnm.diffbot.util.TimeUtils;
 
 public class GeneratorTestBase {
     protected static String originalFileAsString;
@@ -46,7 +47,7 @@ public class GeneratorTestBase {
 
 
     public static Date getTruncatedDate() {
-        Date date = new Date();
+        Date date = TimeUtils.getTimeGmt();
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MILLISECOND, 0);
         date.setTime(calendar.getTimeInMillis());
