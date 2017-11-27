@@ -39,7 +39,8 @@ public class DbDataLoader {
     public void fireAllScripts() {
         teardownDb();
         bootstrapDb();
-        loadDummyDiffUrls();
+        loadDiffUrls();
+        loadPollTimes();
     }
 
 
@@ -58,13 +59,23 @@ public class DbDataLoader {
     }
 
 
-    private void loadDummyDiffUrls() {
+    private void loadDiffUrls() {
         executeSqlStatements(getDiffUrlStatements(), getDataSource());
+    }
+
+
+    private void loadPollTimes() {
+        executeSqlStatements(getPollTimeStatements(), getDataSource());
     }
 
 
     private List<String> getDiffUrlStatements() {
         return getSqlStatements("src/main/resources/sql/diff_url_t.sql");
+    }
+
+
+    private List<String> getPollTimeStatements() {
+        return getSqlStatements("src/main/resources/sql/poll_times.sql");
     }
 
 

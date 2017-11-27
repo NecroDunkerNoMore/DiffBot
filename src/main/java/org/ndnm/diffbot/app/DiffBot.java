@@ -41,6 +41,7 @@ import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.ndnm.diffbot.service.RedditService;
 import org.ndnm.diffbot.service.RedditTimeService;
 import org.ndnm.diffbot.service.RedditUserService;
+import org.ndnm.diffbot.service.UrlPollingTimeService;
 import org.ndnm.diffbot.spring.SpringContext;
 import org.ndnm.diffbot.util.DiffGenerator;
 import org.ndnm.diffbot.util.TimeUtils;
@@ -53,6 +54,7 @@ public class DiffBot implements HealthCheckableService {
     private static final Logger LOG = LogManager.getLogger(DiffBot.class);
     private static final long AUTH_SLEEP_INTERVAL = 10 * 1000; // 10 seconds in millis
     private static final long DIFF_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
+    private static final long REDDIT_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
     private static final long OAUTH_REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes in millis
     private static final int MAX_AUTH_ATTEMPTS = 3;
 
@@ -64,13 +66,14 @@ public class DiffBot implements HealthCheckableService {
     private final HtmlFetchingService htmlFetchingService;
     private final DiffUrlService diffUrlService;
     private final HtmlSnapshotService htmlSnapshotService;
+    private final UrlPollingTimeService urlPollingTimeService;
     private boolean killSwitchClick;
 
 
     @Autowired
     public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditUserService redditUserService,
                    RedditTimeService redditTimeService, AuthTimeService authTimeService, HtmlFetchingService htmlFetchingService,
-                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService) {
+                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService, UrlPollingTimeService urlPollingTimeService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.redditUserService = redditUserService;
@@ -79,6 +82,7 @@ public class DiffBot implements HealthCheckableService {
         this.htmlFetchingService =  htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
+        this.urlPollingTimeService = urlPollingTimeService;
         this.killSwitchClick = false;
     }
 
@@ -90,49 +94,17 @@ public class DiffBot implements HealthCheckableService {
         }
 
         while (!killSwitchClick) {
-            LOG.info("--------------------------------------------------------------------------------");
-            LOG.info("Pulling all DiffUrls to iterate over...");
-            List<DiffUrl> diffUrls = getDiffUrlService().findAll();
-            LOG.info("Found %d DiffUrl(s).", diffUrls.size());
 
-            for (DiffUrl diffUrl : diffUrls) {
-                LOG.info("----------------------------------------");
-                LOG.info("Processing DiffUrl: %s", diffUrl.getSourceUrl());
+            if (isTimeToProcessDiffUrls()) {
+                processDiffUrls();
+            }
 
-                HtmlSnapshot lastHtmlSnapshot  = getHtmlSnapshotService().findLatest(diffUrl);
-                if (lastHtmlSnapshot == null) {
-                    LOG.info("Saving initial HtmlSnapshot for DiffUrl: '%s': ", diffUrl.getSourceUrl());
-                    processFirstTimeHtmlSnapshot(diffUrl);
-                    continue;
-                }
-
-                Date dateCaptured = TimeUtils.getTimeGmt();
-                String oldHtml = lastHtmlSnapshot.getRawHtml();
-                String newHtml = getHtmlFetchingService().fetchHtml(diffUrl);
-
-                DiffResult diffResult = DiffGenerator.getDiffResult(dateCaptured, diffUrl, oldHtml, newHtml);
-                if (!diffResult.hasDeltas()) {
-                    LOG.info("Found no changes, continuing.");
-                    continue;
-                }
-
-                LOG.info("********************************************************************************");
-                LOG.info("Saving DiffResult w/ %d deltas from DiffUrl: '%s'", diffResult.getNumDeltas(), diffUrl.getSourceUrl());
-                getDiffResultService().save(diffResult);
-                LOG.info("Save complete.");
-
-                LOG.info("********************************************************************************");
-                LOG.info("Posting DiffResult to reddit...");
-                getRedditService().postDiffResult(diffResult);
-                LOG.info("Posting complete.");
-                //notifySubscribers(diffResult);
+            if (isTimeToCheckRedditMail()) {
 
             }
 
-            LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
-
             // OAuth token needs refreshing every 60 minutes
-            if (authNeedsRefreshing()) {
+            if (isTimeToRefreshAuth()) {
                 retryAuthTillSuccess();
             }
 
@@ -146,6 +118,66 @@ public class DiffBot implements HealthCheckableService {
 
         }
 
+    }
+
+
+    private boolean isTimeToCheckRedditMail() {
+        long lastPollTime = getRedditTimeService().getLastPollingTime().getDate().getTime();
+        long now = TimeUtils.getTimeGmt().getTime();
+
+        return (now - lastPollTime) >= REDDIT_POLLING_INTERVAL;
+    }
+
+
+    private boolean isTimeToProcessDiffUrls() {
+        long lastSuccessfulPollTime = getUrlPollingTimeService().getLastPollingTime().getDate().getTime();
+        long now = TimeUtils.getTimeGmt().getTime();
+
+        return (now - lastSuccessfulPollTime) >= DIFF_POLLING_INTERVAL;
+    }
+
+
+    private void processDiffUrls() {
+        LOG.info("--------------------------------------------------------------------------------");
+        LOG.info("Pulling all DiffUrls to iterate over...");
+        List<DiffUrl> diffUrls = getDiffUrlService().findAll();
+        LOG.info("Found %d DiffUrl(s).", diffUrls.size());
+
+        for (DiffUrl diffUrl : diffUrls) {
+            LOG.info("----------------------------------------");
+            LOG.info("Processing DiffUrl: %s", diffUrl.getSourceUrl());
+
+            HtmlSnapshot lastHtmlSnapshot  = getHtmlSnapshotService().findLatest(diffUrl);
+            if (lastHtmlSnapshot == null) {
+                LOG.info("Saving initial HtmlSnapshot for DiffUrl: '%s': ", diffUrl.getSourceUrl());
+                processFirstTimeHtmlSnapshot(diffUrl);
+                continue;
+            }
+
+            Date dateCaptured = TimeUtils.getTimeGmt();
+            String oldHtml = lastHtmlSnapshot.getRawHtml();
+            String newHtml = getHtmlFetchingService().fetchHtml(diffUrl);
+
+            DiffResult diffResult = DiffGenerator.getDiffResult(dateCaptured, diffUrl, oldHtml, newHtml);
+            if (!diffResult.hasDeltas()) {
+                LOG.info("Found no changes, continuing.");
+                continue;
+            }
+
+            LOG.info("********************************************************************************");
+            LOG.info("Saving DiffResult w/ %d deltas from DiffUrl: '%s'", diffResult.getNumDeltas(), diffUrl.getSourceUrl());
+            getDiffResultService().save(diffResult);
+            LOG.info("Save complete.");
+
+            LOG.info("********************************************************************************");
+            LOG.info("Posting DiffResult to reddit...");
+            getRedditService().postDiffResult(diffResult);
+            LOG.info("Posting complete.");
+            //notifySubscribers(diffResult);
+
+        }
+
+        LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
     }
 
 
@@ -181,7 +213,7 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private boolean authNeedsRefreshing() {
+    private boolean isTimeToRefreshAuth() {
         AuthPollingTime lastAuthTime = getAuthTimeService().getLastSuccessfulAuth();
         long now = TimeUtils.getTimeGmt().getTime();
         long lastAuth = lastAuthTime.getDate().getTime();
@@ -272,6 +304,11 @@ public class DiffBot implements HealthCheckableService {
 
     private HtmlSnapshotService getHtmlSnapshotService() {
         return htmlSnapshotService;
+    }
+
+
+    private UrlPollingTimeService getUrlPollingTimeService() {
+        return urlPollingTimeService;
     }
 
 

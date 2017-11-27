@@ -1,12 +1,14 @@
 package org.ndnm.diffbot;
 
 import java.math.BigInteger;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.ndnm.diffbot.model.UrlPollingTime;
 import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
@@ -14,6 +16,7 @@ import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.ndnm.diffbot.service.DiffResultService;
 import org.ndnm.diffbot.service.DiffUrlService;
 import org.ndnm.diffbot.service.HtmlSnapshotService;
+import org.ndnm.diffbot.service.UrlPollingTimeService;
 import org.ndnm.diffbot.spring.SpringContext;
 import org.ndnm.diffbot.util.DbDataLoader;
 import org.ndnm.diffbot.util.DiffGenerator;
@@ -24,7 +27,7 @@ public class PersistenceTest extends GeneratorTestBase {
     private int fauxSeconds = 1;
 
     @Before
-    public void dBetup() {
+    public void dBsetup() {
         // Reset to clean state before tests run
         resetDb();
     }
@@ -130,12 +133,43 @@ public class PersistenceTest extends GeneratorTestBase {
     }
 
 
+    @Test
+    public void testUrlPollingTime() {
+        UrlPollingTimeService urlPollingTimeService = SpringContext.getBean(UrlPollingTimeService.class);
+
+        UrlPollingTime urlPollingTime = null;
+        for (int i = 0; i < 6; i++) {
+            urlPollingTime = new UrlPollingTime();
+            urlPollingTime.setDate(getAnotherFauxDate());
+            urlPollingTime.setSuccess(true);
+            urlPollingTimeService.save(urlPollingTime);
+        }
+
+        UrlPollingTime latest = urlPollingTimeService.getLastPollingTime();
+        Assert.assertNotNull("Polling time came back null!", latest);
+
+        Date latestDate = urlPollingTime.getDate();
+        Assert.assertTrue("Did not pull latest date!", urlPollingTime.getDate().getTime() == latestDate.getTime());
+
+    }
+
+
     @SuppressWarnings("deprecation")
     private HtmlSnapshot getRandomHtmlSnapshot(DiffUrl diffUrl, CaptureType captureType) {
         String rawHtml = generateRandomString(100);
-        Date dateCaptured = TimeUtils.getTimeGmt();
-        dateCaptured.setSeconds(dateCaptured.getSeconds() + fauxSeconds++);
+        Date dateCaptured = getAnotherFauxDate();
 
         return new HtmlSnapshot(diffUrl, rawHtml, captureType, dateCaptured);
+    }
+
+    @SuppressWarnings("deprecation")
+    private Date getAnotherFauxDate() {
+        Date date = TimeUtils.getTimeGmt();
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.MILLISECOND, 0);
+        date.setTime(calendar.getTimeInMillis());
+        date.setSeconds(date.getSeconds() + fauxSeconds++);
+
+        return date;
     }
 }

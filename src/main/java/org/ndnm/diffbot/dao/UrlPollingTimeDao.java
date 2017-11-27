@@ -2,11 +2,10 @@ package org.ndnm.diffbot.dao;
 
 import java.math.BigInteger;
 
-import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.UrlPollingTime;
 
-public interface UrlPollingTimeServiceDao {
-    UrlPollingTime getUrlPollingTime(DiffUrl diffUrl);
+public interface UrlPollingTimeDao {
+    UrlPollingTime getUrlPollingTime();
 
     UrlPollingTime findById(BigInteger id);
 

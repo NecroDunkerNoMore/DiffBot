@@ -16,11 +16,10 @@ import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "url_polling_time_t")
-public class UrlPollingTime implements Serializable {
+public class UrlPollingTime implements PollingTime, Serializable {
     private static final long serialVersionUID = 5415645255588950985L;
 
     private BigInteger id;
-    private String url;
     private Date date;
     private boolean success;
 
@@ -40,17 +39,6 @@ public class UrlPollingTime implements Serializable {
 
     public void setId(BigInteger id) {
         this.id = id;
-    }
-
-
-    @Column(name = "url")
-    public String getUrl() {
-        return url;
-    }
-
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
 

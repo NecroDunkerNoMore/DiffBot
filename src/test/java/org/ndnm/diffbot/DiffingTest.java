@@ -31,7 +31,7 @@ public class DiffingTest extends GeneratorTestBase {
     public void testChangeDeltas() {
         List<DiffDelta> changeDeltas = diffResult.getChangeDeltas();
         System.out.printf("**** %d CHANGES **************************************************************************************\n", changeDeltas.size());
-        Assert.assertTrue("Did not get the 2 change deltas expected!" + changeDeltas.size(), changeDeltas.size() == 2);
+        Assert.assertTrue("Did not get the 2 change deltas expected!: " + changeDeltas.size(), changeDeltas.size() == 2);
 
         for (DiffDelta delta : changeDeltas) {
 

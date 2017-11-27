@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import org.ndnm.diffbot.model.RedditPollingTime;
 
 
-public interface RedditTimeServiceDao {
+public interface RedditPollingTimeDao {
     RedditPollingTime getLastRedditPollingTime();
 
     RedditPollingTime findById(BigInteger id);

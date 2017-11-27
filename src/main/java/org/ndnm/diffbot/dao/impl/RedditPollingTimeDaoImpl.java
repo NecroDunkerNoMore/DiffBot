@@ -3,14 +3,14 @@ package org.ndnm.diffbot.dao.impl;
 import java.math.BigInteger;
 import java.util.List;
 
-import org.ndnm.diffbot.dao.RedditTimeServiceDao;
+import org.ndnm.diffbot.dao.RedditPollingTimeDao;
 import org.ndnm.diffbot.model.RedditPollingTime;
 import org.springframework.stereotype.Repository;
 
 
 @Repository
-public class RedditTimeServiceDaoImpl extends AbstractDao<BigInteger, RedditPollingTime> implements RedditTimeServiceDao {
-    private static final String SELECT_BY_MAX_ID = "SELECT t FROM RedditPollingTime t where id in ( select max(id) from RedditPollingTime)";
+public class RedditPollingTimeDaoImpl extends AbstractDao<BigInteger, RedditPollingTime> implements RedditPollingTimeDao {
+    private static final String SELECT_BY_MAX_ID = "SELECT t FROM RedditPollingTime t where id = (select max(id) from RedditPollingTime where success = true)";
 
     @SuppressWarnings("unchecked")//getResultList()
     @Override

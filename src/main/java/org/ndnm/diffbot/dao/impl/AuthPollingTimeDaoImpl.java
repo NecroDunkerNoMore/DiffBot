@@ -2,13 +2,13 @@ package org.ndnm.diffbot.dao.impl;
 
 import java.math.BigInteger;
 
-import org.ndnm.diffbot.dao.AuthTimeServiceDao;
+import org.ndnm.diffbot.dao.AuthPollingTimeDao;
 import org.ndnm.diffbot.model.AuthPollingTime;
 import org.springframework.stereotype.Repository;
 
 
 @Repository
-public class AuthTimeServiceDaoImpl extends AbstractDao<BigInteger, AuthPollingTime> implements AuthTimeServiceDao {
+public class AuthPollingTimeDaoImpl extends AbstractDao<BigInteger, AuthPollingTime> implements AuthPollingTimeDao {
     private static final String SELECT_BY_LAST_SUCCESS = "select t from AuthPollingTime t where id = (select max(id) from AuthPollingTime where success = true)";
 
 

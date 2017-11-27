@@ -21,6 +21,7 @@ public class RedditPollingTime implements Serializable {
 
     private BigInteger id;
     private Date date;
+    private boolean success;
 
 
     public RedditPollingTime() {
@@ -52,4 +53,14 @@ public class RedditPollingTime implements Serializable {
         this.date = date;
     }
 
+
+    @Column(name = "success")
+    public boolean isSuccess() {
+        return success;
+    }
+
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 }
