@@ -25,7 +25,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.RedditUser;
@@ -105,7 +104,7 @@ public class RedditServiceImpl implements RedditService {
 
         makeCommentOnNewPost(submission, diffResult);
 
-        return submission.getUrl();
+        return submission.getShortURL();
     }
 
 
@@ -215,16 +214,6 @@ public class RedditServiceImpl implements RedditService {
         }//for
 
         return count;
-    }
-
-
-    private boolean isUserBlacklisted(String authorUsername) {
-        boolean isBlacklisted = StringUtils.isBlank(authorUsername) || isUserBlacklisted(authorUsername);
-        if (isBlacklisted) {
-            LOG.info("User '%s' is blacklisted.");
-        }
-
-        return isBlacklisted;
     }
 
 
