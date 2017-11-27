@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import org.ndnm.diffbot.dao.RedditPollingTimeDao;
 import org.ndnm.diffbot.model.RedditPollingTime;
-import org.ndnm.diffbot.service.RedditTimeService;
+import org.ndnm.diffbot.service.RedditPollingTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class RedditTimeServiceImpl implements RedditTimeService {
+public class RedditPollingTimeServiceImpl implements RedditPollingTimeService {
     final RedditPollingTimeDao dao;
 
 
     @Autowired
-    public RedditTimeServiceImpl(RedditPollingTimeDao dao) {
+    public RedditPollingTimeServiceImpl(RedditPollingTimeDao dao) {
         this.dao = dao;
     }
 

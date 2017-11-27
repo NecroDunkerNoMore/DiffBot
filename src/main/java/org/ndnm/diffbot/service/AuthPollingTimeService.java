@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import org.ndnm.diffbot.model.AuthPollingTime;
 
-public interface AuthTimeService {
+public interface AuthPollingTimeService {
 
     AuthPollingTime getLastSuccessfulAuth();
 

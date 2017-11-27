@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 import org.ndnm.diffbot.dao.AuthPollingTimeDao;
 import org.ndnm.diffbot.model.AuthPollingTime;
-import org.ndnm.diffbot.service.AuthTimeService;
+import org.ndnm.diffbot.service.AuthPollingTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class AuthTimeServiceImpl implements AuthTimeService {
+public class AuthPollingTimeServiceImpl implements AuthPollingTimeService {
     final AuthPollingTimeDao dao;
 
 
     @Autowired
-    public AuthTimeServiceImpl(AuthPollingTimeDao dao) {
+    public AuthPollingTimeServiceImpl(AuthPollingTimeDao dao) {
         this.dao = dao;
     }
 

@@ -32,14 +32,14 @@ import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.diff.HtmlSnapshot;
-import org.ndnm.diffbot.service.AuthTimeService;
+import org.ndnm.diffbot.service.AuthPollingTimeService;
 import org.ndnm.diffbot.service.DiffResultService;
 import org.ndnm.diffbot.service.DiffUrlService;
 import org.ndnm.diffbot.service.HealthCheckableService;
 import org.ndnm.diffbot.service.HtmlFetchingService;
 import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.ndnm.diffbot.service.RedditService;
-import org.ndnm.diffbot.service.RedditTimeService;
+import org.ndnm.diffbot.service.RedditPollingTimeService;
 import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.service.UrlPollingTimeService;
 import org.ndnm.diffbot.spring.SpringContext;
@@ -59,26 +59,26 @@ public class DiffBot implements HealthCheckableService {
     private static final int MAX_AUTH_ATTEMPTS = 3;
 
     private final RedditService redditService;
-    private final DiffResultService diffResultService;
     private final RedditUserService redditUserService;
-    private final RedditTimeService redditTimeService;
-    private final AuthTimeService authTimeService;
+    private final RedditPollingTimeService redditPollingTimeService;
+    private final AuthPollingTimeService authPollingTimeService;
+    private final UrlPollingTimeService urlPollingTimeService;
+    private final DiffResultService diffResultService;
     private final HtmlFetchingService htmlFetchingService;
     private final DiffUrlService diffUrlService;
     private final HtmlSnapshotService htmlSnapshotService;
-    private final UrlPollingTimeService urlPollingTimeService;
     private boolean killSwitchClick;
 
 
     @Autowired
     public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditUserService redditUserService,
-                   RedditTimeService redditTimeService, AuthTimeService authTimeService, HtmlFetchingService htmlFetchingService,
+                   RedditPollingTimeService redditPollingTimeService, AuthPollingTimeService authPollingTimeService, HtmlFetchingService htmlFetchingService,
                    DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService, UrlPollingTimeService urlPollingTimeService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.redditUserService = redditUserService;
-        this.redditTimeService = redditTimeService;
-        this.authTimeService = authTimeService;
+        this.redditPollingTimeService = redditPollingTimeService;
+        this.authPollingTimeService = authPollingTimeService;
         this.htmlFetchingService =  htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
@@ -122,7 +122,7 @@ public class DiffBot implements HealthCheckableService {
 
 
     private boolean isTimeToCheckRedditMail() {
-        long lastPollTime = getRedditTimeService().getLastPollingTime().getDate().getTime();
+        long lastPollTime = getRedditPollingTimeService().getLastPollingTime().getDate().getTime();
         long now = TimeUtils.getTimeGmt().getTime();
 
         return (now - lastPollTime) >= REDDIT_POLLING_INTERVAL;
@@ -214,7 +214,7 @@ public class DiffBot implements HealthCheckableService {
 
 
     private boolean isTimeToRefreshAuth() {
-        AuthPollingTime lastAuthTime = getAuthTimeService().getLastSuccessfulAuth();
+        AuthPollingTime lastAuthTime = getAuthPollingTimeService().getLastSuccessfulAuth();
         long now = TimeUtils.getTimeGmt().getTime();
         long lastAuth = lastAuthTime.getDate().getTime();
 
@@ -249,7 +249,7 @@ public class DiffBot implements HealthCheckableService {
         success &= isAuthenticated();
 
         time.setSuccess(success);
-        getAuthTimeService().save(time);
+        getAuthPollingTimeService().save(time);
 
         LOG.info("Authentication attempt was successful: %s", success);
         return success;
@@ -277,13 +277,13 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    public RedditTimeService getRedditTimeService() {
-        return redditTimeService;
+    public RedditPollingTimeService getRedditPollingTimeService() {
+        return redditPollingTimeService;
     }
 
 
-    private AuthTimeService getAuthTimeService() {
-        return authTimeService;
+    private AuthPollingTimeService getAuthPollingTimeService() {
+        return authPollingTimeService;
     }
 
 
