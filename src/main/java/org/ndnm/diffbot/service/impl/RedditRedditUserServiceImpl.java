@@ -1,6 +1,7 @@
 package org.ndnm.diffbot.service.impl;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import org.ndnm.diffbot.dao.RedditUserDao;
 import org.ndnm.diffbot.model.RedditUser;
@@ -25,6 +26,12 @@ public class RedditRedditUserServiceImpl implements RedditUserService {
     @Override
     public boolean isUserBlacklisted(String username) {
         return dao.isUserBlacklisted(username);
+    }
+
+
+    @Override
+    public List<RedditUser> getAllNonBlacklistedUsers() {
+        return dao.getAllNonBlacklistedUsers();
     }
 
 

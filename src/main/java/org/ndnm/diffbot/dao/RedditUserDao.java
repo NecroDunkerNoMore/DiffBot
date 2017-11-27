@@ -1,6 +1,7 @@
 package org.ndnm.diffbot.dao;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import org.ndnm.diffbot.model.RedditUser;
 
@@ -16,4 +17,7 @@ public interface RedditUserDao {
     void delete(RedditUser redditUser);
 
     void update(RedditUser redditUser);
+
+    @SuppressWarnings("unchecked")
+    List<RedditUser> getAllNonBlacklistedUsers();
 }

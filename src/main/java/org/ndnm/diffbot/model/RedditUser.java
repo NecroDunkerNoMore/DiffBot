@@ -23,6 +23,7 @@ public class RedditUser implements Serializable {
     private Date dateCreated;
     private String blacklistReason;
     private boolean isBlacklisted;
+    private boolean isSubscribed;
 
 
     public RedditUser() {
@@ -85,5 +86,16 @@ public class RedditUser implements Serializable {
 
     public void setBlacklisted(boolean blacklisted) {
         isBlacklisted = blacklisted;
+    }
+
+
+    @Column(name = "is_subscribed")
+    public boolean isSubscribed() {
+        return isSubscribed;
+    }
+
+
+    public void setSubscribed(boolean subscribed) {
+        isSubscribed = subscribed;
     }
 }

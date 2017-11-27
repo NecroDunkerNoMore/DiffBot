@@ -23,12 +23,16 @@ package org.ndnm.diffbot.service.impl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.ndnm.diffbot.model.RedditUser;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.service.AuthService;
 import org.ndnm.diffbot.service.RedditService;
+import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.util.RedditPostFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,13 +56,16 @@ public class RedditServiceImpl implements RedditService {
 
     private final AuthService authService;
     private final RedditClient redditClient;
+    private final RedditUserService redditUserService;
     private final RedditPostFormatter redditPostFormatter;
 
 
     @Autowired
-    public RedditServiceImpl(AuthService authService, RedditClient redditClient, RedditPostFormatter redditPostFormatter) {
+    public RedditServiceImpl(AuthService authService, RedditClient redditClient, RedditUserService redditUserService,
+                             RedditPostFormatter redditPostFormatter) {
         this.authService = authService;
         this.redditClient = redditClient;
+        this.redditUserService = redditUserService;
         this.redditPostFormatter = redditPostFormatter;
     }
 
@@ -76,7 +83,7 @@ public class RedditServiceImpl implements RedditService {
 
 
     @Override
-    public void postDiffResult(DiffResult diffResult) {
+    public String postDiffResult(DiffResult diffResult) {
         FluentRedditClient fluentClient = new FluentRedditClient(redditClient);
         SubredditReference subredditReference = fluentClient.subreddit("TheEssaysChanged");
 
@@ -97,6 +104,8 @@ public class RedditServiceImpl implements RedditService {
         }
 
         makeCommentOnNewPost(submission, diffResult);
+
+        return submission.getUrl();
     }
 
 
@@ -153,6 +162,69 @@ public class RedditServiceImpl implements RedditService {
         } catch (Exception e) {
             LOG.error("Could not mark message with id(%s) as read: %s", message.getId(), e.getMessage());
         }
+    }
+
+
+    @Override
+    public void replyToMessage(RedditUser redditUser, boolean isSubscribed) {
+        String to = redditUser.getUsername();
+        String subject = isSubscribed ? "Successfully Subscribed" : "Succsessfully Unsubscribed";
+
+        String body;
+        if (isSubscribed) {
+            body = "You will now recieve PMs when the watched links change, thank you! (You can unsubscribe by replying with 'unsubscribe'.)";
+        } else {
+            body = "You will not recieve anymore PMs from this bot. (You can re-subscribe by replying with 'subscribe'.)";
+        }
+
+        InboxReference inbox = getInbox();
+        if (inbox == null) {
+            throw new RuntimeException("Couldn't get inbox!");
+        }
+
+        try {
+            inbox.compose(to, subject, body);
+        } catch (Exception e) {
+            LOG.error("Could not send PM to summoner: %s", e.getMessage());
+        }
+    }
+
+
+    @Override
+    public int notifySubscribersOfPost(String postUrl) {
+        int count = 0;
+
+        List<RedditUser> redditSubscribers = getRedditUserService().getAllNonBlacklistedUsers();
+        for (RedditUser user : redditSubscribers) {
+            String to = user.getUsername();
+            String subject = "TSCC Essays Have Changed.";
+            String body = String.format("The Essays have changed, see the [details here](%s).", postUrl);
+
+            InboxReference inbox = getInbox();
+            if (inbox == null) {
+                throw new RuntimeException("Couldn't get inbox!");
+            }
+
+            try {
+                inbox.compose(to, subject, body);
+            } catch (Exception e) {
+                LOG.error("Could not send PM to summoner: %s", e.getMessage());
+            }
+
+            count++;
+        }//for
+
+        return count;
+    }
+
+
+    private boolean isUserBlacklisted(String authorUsername) {
+        boolean isBlacklisted = StringUtils.isBlank(authorUsername) || isUserBlacklisted(authorUsername);
+        if (isBlacklisted) {
+            LOG.info("User '%s' is blacklisted.");
+        }
+
+        return isBlacklisted;
     }
 
 
@@ -222,4 +294,8 @@ public class RedditServiceImpl implements RedditService {
         return authService;
     }
 
+
+    private RedditUserService getRedditUserService() {
+        return redditUserService;
+    }
 }

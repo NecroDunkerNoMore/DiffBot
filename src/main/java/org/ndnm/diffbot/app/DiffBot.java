@@ -24,10 +24,10 @@ package org.ndnm.diffbot.app;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.AuthPollingTime;
+import org.ndnm.diffbot.model.RedditUser;
 import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
@@ -38,8 +38,8 @@ import org.ndnm.diffbot.service.DiffUrlService;
 import org.ndnm.diffbot.service.HealthCheckableService;
 import org.ndnm.diffbot.service.HtmlFetchingService;
 import org.ndnm.diffbot.service.HtmlSnapshotService;
-import org.ndnm.diffbot.service.RedditService;
 import org.ndnm.diffbot.service.RedditPollingTimeService;
+import org.ndnm.diffbot.service.RedditService;
 import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.service.UrlPollingTimeService;
 import org.ndnm.diffbot.spring.SpringContext;
@@ -47,6 +47,9 @@ import org.ndnm.diffbot.util.DiffGenerator;
 import org.ndnm.diffbot.util.TimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import net.dean.jraw.models.Listing;
+import net.dean.jraw.models.Message;
 
 
 @Component
@@ -100,7 +103,7 @@ public class DiffBot implements HealthCheckableService {
             }
 
             if (isTimeToCheckRedditMail()) {
-
+                processRedditMail();
             }
 
             // OAuth token needs refreshing every 60 minutes
@@ -118,6 +121,33 @@ public class DiffBot implements HealthCheckableService {
 
         }
 
+    }
+
+
+    private void processRedditMail() {
+        Listing<Message> messages = getRedditService().getUnreadMessages();
+        for (Message message : messages) {
+            String body = message.getBody();
+            String username = message.getAuthor();
+            if (body.trim().toLowerCase().startsWith("subscribe")) {
+                Date dateCreated = TimeUtils.getTimeGmt();
+
+                RedditUser user = new RedditUser();
+                user.setUsername(username);
+                user.setDateCreated(dateCreated);
+
+                getRedditUserService().save(user);
+            } else if (body.trim().toLowerCase().startsWith("unsubscribe")) {
+                RedditUser user = getRedditUserService().getRedditUserbyUsername(username);
+                if (user != null) {
+                    user.setSubscribed(false);
+                    getRedditUserService().save(user);
+                }
+            }
+
+            getRedditService().markMessageRead(message);
+
+        }//for
     }
 
 
@@ -171,11 +201,16 @@ public class DiffBot implements HealthCheckableService {
 
             LOG.info("********************************************************************************");
             LOG.info("Posting DiffResult to reddit...");
-            getRedditService().postDiffResult(diffResult);
+            String postUrl = getRedditService().postDiffResult(diffResult);
             LOG.info("Posting complete.");
-            //notifySubscribers(diffResult);
 
-        }
+
+            LOG.info("********************************************************************************");
+            LOG.info("Notifying reddit subscribers...");
+            int count = notifySubscribers(postUrl);
+            LOG.info("%d notification sent.", count);
+
+        }//for
 
         LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
     }
@@ -222,20 +257,12 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private boolean isUserBlacklisted(String authorUsername) {
-        boolean isBlacklisted = StringUtils.isBlank(authorUsername) || getRedditUserService().isUserBlacklisted(authorUsername);
-        if (isBlacklisted) {
-            LOG.info("User '%s' is blacklisted.");
-        }
+    private int notifySubscribers(String postUrl) {
+        LOG.info("Notifying subscribers about DiffResult...");
+        int numNotified = getRedditService().notifySubscribersOfPost(postUrl);
+        LOG.info("Completed notifying %d subscribers.", numNotified);
 
-        return isBlacklisted;
-    }
-
-
-    private void deliverDiffResult(List<DiffResult> diffResults) {
-        LOG.info("Making reddit post for %d events...", diffResults.size());
-        //getRedditService().postDiffResults(diffResults);
-        LOG.info("Completed reddit posting events.");
+        return numNotified;
     }
 
 
@@ -277,7 +304,7 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    public RedditPollingTimeService getRedditPollingTimeService() {
+    private RedditPollingTimeService getRedditPollingTimeService() {
         return redditPollingTimeService;
     }
 

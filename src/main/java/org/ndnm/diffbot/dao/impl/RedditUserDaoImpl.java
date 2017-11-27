@@ -1,6 +1,7 @@
 package org.ndnm.diffbot.dao.impl;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ndnm.diffbot.dao.RedditUserDao;
@@ -11,12 +12,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RedditUserDaoImpl extends AbstractDao<BigInteger, RedditUser> implements RedditUserDao {
     private static final String SELECT_BY_USERNAME = "SELECT u FROM RedditUser u where username = :username";
+    private static final String SELECT_BY_ALL_NON_BLACKLISTED_USERS = "select u from RedditUser u where blacklisted = false";
 
 
     @Override
     public boolean isUserBlacklisted(String username) {
         RedditUser user = getRedditUserbyUsername(username);
-
         return user != null && user.isBlacklisted();
     }
 
@@ -59,6 +60,21 @@ public class RedditUserDaoImpl extends AbstractDao<BigInteger, RedditUser> imple
         }
 
         return blacklistedUsers.get(0);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<RedditUser> getAllNonBlacklistedUsers() {
+        List<RedditUser> allNonblacklistedUsers = getEntityManager()
+                .createQuery(SELECT_BY_ALL_NON_BLACKLISTED_USERS)
+                .getResultList();
+
+        if (allNonblacklistedUsers == null || allNonblacklistedUsers.size() == 0) {
+            return new ArrayList<>();
+        }
+
+        return allNonblacklistedUsers;
     }
 
 }

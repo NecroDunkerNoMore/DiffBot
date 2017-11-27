@@ -73,6 +73,7 @@ CREATE TABLE reddit_user_t (
   date_created     DATETIME        NOT NULL,
   blacklist_reason TEXT,
   is_blacklisted   BOOLEAN         NOT NULL DEFAULT FALSE,
+  is_subscribed    BOOLEAN         NOT NULL DEFAULT TRUE,
   PRIMARY KEY (id)
 );
 CREATE INDEX username

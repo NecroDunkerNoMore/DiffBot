@@ -21,6 +21,7 @@
 package org.ndnm.diffbot.service;
 
 
+import org.ndnm.diffbot.model.RedditUser;
 import org.ndnm.diffbot.model.diff.DiffResult;
 
 import net.dean.jraw.models.Listing;
@@ -31,9 +32,13 @@ public interface RedditService extends HealthCheckableService {
 
     boolean isAuthenticated();
 
-    void postDiffResult(DiffResult diffResult);
+    String postDiffResult(DiffResult diffResult);
 
     Listing<Message> getUnreadMessages();
 
     void markMessageRead(Message message);
+
+    void replyToMessage(RedditUser redditUser, boolean isSubscribed);
+
+    int notifySubscribersOfPost(String postUrl);
 }
