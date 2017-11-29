@@ -42,8 +42,15 @@ public class HtmlFetchingServiceImpl implements HtmlFetchingService {
                 throw new HttpResponseException(statusCode, message);
             }
 
-            return EntityUtils.toString(response.getEntity());
+            String html = EntityUtils.toString(response.getEntity());
 
+            // Takes care of invisible unicode (like \\uEA09) and  reserved characters (like \u200B);
+            // these have been seen in the wild, and confuse the differ
+            html = html.replaceAll("[\\p{Co}\\u200B]", "");
+
+
+
+            return html;
         } catch (HttpResponseException e) {
             LOG.error(e.getMessage());
         } catch (IOException e) {

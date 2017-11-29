@@ -3,6 +3,8 @@ package org.ndnm.diffbot;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -150,6 +152,30 @@ public class PersistenceTest extends GeneratorTestBase {
 
         Date latestDate = urlPollingTime.getDate();
         Assert.assertTrue("Did not pull latest date!", urlPollingTime.getDate().getTime() == latestDate.getTime());
+
+    }
+
+
+    @Test
+    public void testTextEncoding() {
+        Set<String> utf8Set = new HashSet<>();
+        // Seem in the wild, comes back as '?' unknown markers from DB, throws DiffUtils off
+        utf8Set.add("\uEA09");//PrivateUseArea Unicode
+        utf8Set.add("\u200B");//Non-visible empty space Unicode
+
+        String utf8String = "\uEA09 \u200B";
+
+        for (String uchar : utf8Set) {
+            Assert.assertTrue("Didn't find char that should be present!", utf8String.contains(uchar));
+        }
+
+        utf8String = utf8String.replaceAll("[\\p{Co}\\u200B]", "");
+
+        for (String uchar : utf8Set) {
+            Assert.assertTrue("Found chars that should be gone!", !utf8String.contains(uchar));
+        }
+
+
 
     }
 

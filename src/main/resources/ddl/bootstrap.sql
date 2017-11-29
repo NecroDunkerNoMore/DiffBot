@@ -1,4 +1,5 @@
 CREATE DATABASE diffbot;
+ALTER DATABASE diffbot CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 USE diffbot;
 
@@ -51,9 +52,9 @@ CREATE TABLE html_snapshot_t (
   diff_url_id    BIGINT UNSIGNED,
   capture_type   VARCHAR(16)     NOT NULL,
   date_captured  DATETIME        NOT NULL,
-  raw_html       LONGBLOB,
+  raw_html       MEDIUMTEXT,
   PRIMARY KEY (id),
-  FOREIGN KEY diff_result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
+  FOREIGN KEY diff_res_id_fk (diff_result_id) REFERENCES diff_result_t (id)
 );
 
 

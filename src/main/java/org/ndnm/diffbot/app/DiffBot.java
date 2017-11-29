@@ -56,10 +56,10 @@ import net.dean.jraw.models.Message;
 public class DiffBot implements HealthCheckableService {
     private static final Logger LOG = LogManager.getLogger(DiffBot.class);
     private static final long AUTH_SLEEP_INTERVAL = 10 * 1000; // 10 seconds in millis
-    private static final long DIFF_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
+    private static final long DIFF_POLLING_INTERVAL = 60 * 60 * 1000; // 1 hour in millis
     private static final long REDDIT_POLLING_INTERVAL = 10 * 1000; // 10 seconds in millis
     private static final long OAUTH_REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes in millis
-    private static final int MAX_AUTH_ATTEMPTS = 3;
+    private static final int MAX_AUTH_ATTEMPTS = 10;
 
     private final RedditService redditService;
     private final RedditUserService redditUserService;
@@ -112,8 +112,8 @@ public class DiffBot implements HealthCheckableService {
             }
 
             try {
-                LOG.info("Sleeping for %d seconds...", DIFF_POLLING_INTERVAL/1000);
-                Thread.sleep(DIFF_POLLING_INTERVAL);
+                LOG.info("Sleeping for %d seconds...", REDDIT_POLLING_INTERVAL/1000);
+                Thread.sleep(REDDIT_POLLING_INTERVAL);
                 LOG.info("Awake now.");
             } catch (InterruptedException e) {
                 LOG.warn("Unexpectedly woken from sleep!: " + e.getMessage());
