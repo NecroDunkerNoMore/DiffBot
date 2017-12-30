@@ -25,4 +25,5 @@ import net.dean.jraw.RedditClient;
 public interface AuthService {
     boolean authenticate(RedditClient redditClient);
     boolean isAuthenticated(RedditClient redditClient);
+    int getMaxAuthAttempts();
 }

@@ -2,7 +2,11 @@ package org.ndnm.diffbot.service.impl;
 
 import javax.annotation.Resource;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.AuthPollingTime;
+import org.ndnm.diffbot.model.RedditPollingTime;
+import org.ndnm.diffbot.model.UrlPollingTime;
 import org.ndnm.diffbot.service.AuthPollingTimeService;
 import org.ndnm.diffbot.service.RedditPollingTimeService;
 import org.ndnm.diffbot.service.TimingService;
@@ -13,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TimingServiceImpl implements TimingService {
+    private static final Logger LOG = LogManager.getLogger(TimingServiceImpl.class);
+
     @Resource(name = "authSleepIntervalInMillis")
     private long authSleepIntervalInMillis;
     @Resource(name = "diffPollingIntervalInMillis")
@@ -23,8 +29,7 @@ public class TimingServiceImpl implements TimingService {
     private long oauthRefreshIntervalInMillis;
     @Resource(name = "mainLoopIntervalInMillis")
     private long mainLoopIntervalInMillis;
-    @Resource(name = "maxAuthAttempts")
-    private int maxAuthAttempts;
+
 
     private final RedditPollingTimeService redditPollingTimeService;
     private final AuthPollingTimeService authPollingTimeService;
@@ -40,11 +45,11 @@ public class TimingServiceImpl implements TimingService {
 
     @Override
     public boolean isTimeToRefreshAuth() {
-        AuthPollingTime lastAuthTime = getLastSuccessfulAuth();
+        AuthPollingTime lastAuthTime = getAuthPollingTimeService().getLastSuccessfulAuth();
         long now = TimeUtils.getTimeGmt().getTime();
         long lastAuth = lastAuthTime.getDate().getTime();
 
-        return (now - lastAuth) >= getOauthRefreshIntervalInMillis();
+        return (now - lastAuth) >= oauthRefreshIntervalInMillis;
     }
 
 
@@ -53,7 +58,7 @@ public class TimingServiceImpl implements TimingService {
         long lastPollTime = getRedditPollingTimeService().getLastPollingTime().getDate().getTime();
         long now = TimeUtils.getTimeGmt().getTime();
 
-        return (now - lastPollTime) >= getRedditPollingIntervalInMillis();
+        return (now - lastPollTime) >= redditPollingIntervalInMillis;
     }
 
 
@@ -61,44 +66,44 @@ public class TimingServiceImpl implements TimingService {
     public boolean isTimeToProcessDiffUrls() {
         long lastSuccessfulPollTime = getUrlPollingTimeService().getLastPollingTime().getDate().getTime();
         long now = TimeUtils.getTimeGmt().getTime();
+        long timeBetweenNowAndLastUrlPoll = now - lastSuccessfulPollTime;
 
-        return (now - lastSuccessfulPollTime) >= getDiffPollingIntervalInMillis();
+        if (timeBetweenNowAndLastUrlPoll < diffPollingIntervalInMillis) {
+            long secondsToGo = (diffPollingIntervalInMillis - timeBetweenNowAndLastUrlPoll) / 1000;
+            LOG.info("%d seconds till next URL polling.", secondsToGo);
+        }
+
+        return timeBetweenNowAndLastUrlPoll >= diffPollingIntervalInMillis;
     }
 
 
     @Override
-    public void saveAuthPollingTime(AuthPollingTime time) {
+    public void saveNewAuthPollingTime(boolean success) {
+        AuthPollingTime time = new AuthPollingTime();
+        time.setDate(TimeUtils.getTimeGmt());
+        time.setSuccess(success);
+
         getAuthPollingTimeService().save(time);
     }
 
 
     @Override
-    public AuthPollingTime getLastSuccessfulAuth() {
-        return getAuthPollingTimeService().getLastSuccessfulAuth();
+    public void saveNewUrlPollingTime(boolean success) {
+        UrlPollingTime time = new UrlPollingTime();
+        time.setDate(TimeUtils.getTimeGmt());
+        time.setSuccess(success);
+
+        getUrlPollingTimeService().save(time);
     }
 
 
     @Override
-    public long getAuthSleepIntervalInMillis() {
-        return authSleepIntervalInMillis;
-    }
+    public void saveNewRedditPollingTime(boolean success) {
+        RedditPollingTime time = new RedditPollingTime();
+        time.setDate(TimeUtils.getTimeGmt());
+        time.setSuccess(success);
 
-
-    @Override
-    public long getDiffPollingIntervalInMillis() {
-        return diffPollingIntervalInMillis;
-    }
-
-
-    @Override
-    public long getRedditPollingIntervalInMillis() {
-        return redditPollingIntervalInMillis;
-    }
-
-
-    @Override
-    public long getOauthRefreshIntervalInMillis() {
-        return oauthRefreshIntervalInMillis;
+        getRedditPollingTimeService().save(time);
     }
 
 
@@ -109,22 +114,22 @@ public class TimingServiceImpl implements TimingService {
 
 
     @Override
-    public int getMaxAuthAttempts() {
-        return maxAuthAttempts;
+    public long getAuthSleepIntervalInMillis() {
+        return authSleepIntervalInMillis;
     }
 
 
-    public RedditPollingTimeService getRedditPollingTimeService() {
+    private RedditPollingTimeService getRedditPollingTimeService() {
         return redditPollingTimeService;
     }
 
 
-    public AuthPollingTimeService getAuthPollingTimeService() {
+    private AuthPollingTimeService getAuthPollingTimeService() {
         return authPollingTimeService;
     }
 
 
-    public UrlPollingTimeService getUrlPollingTimeService() {
+    private UrlPollingTimeService getUrlPollingTimeService() {
         return urlPollingTimeService;
     }
 }

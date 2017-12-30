@@ -42,5 +42,7 @@ public interface RedditService extends HealthCheckableService {
 
     int notifySubscribersOfPost(String postUrl);
 
-    void processMail();
+    boolean processMail();
+
+    int getMaxAuthAttempts();
 }

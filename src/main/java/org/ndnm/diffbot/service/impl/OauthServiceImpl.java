@@ -21,6 +21,8 @@
 
 package org.ndnm.diffbot.service.impl;
 
+import javax.annotation.Resource;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.service.AuthService;
@@ -35,6 +37,8 @@ import net.dean.jraw.http.oauth.OAuthData;
 public class OauthServiceImpl implements AuthService {
     private static final Logger LOG = LogManager.getLogger(OauthServiceImpl.class);
 
+    @Resource(name = "maxAuthAttempts")
+    private int maxAuthAttempts;
     private final Credentials credentials;
 
 
@@ -66,6 +70,12 @@ public class OauthServiceImpl implements AuthService {
 
     private Credentials getCredentials() {
         return credentials;
+    }
+
+
+    @Override
+    public int getMaxAuthAttempts() {
+        return maxAuthAttempts;
     }
 
 }

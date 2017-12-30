@@ -221,11 +221,11 @@ public class RedditServiceImpl implements RedditService {
 
 
     @Override
-    public void processMail() {
+    public boolean processMail() {
         Listing<Message> messages = getUnreadMessages();
         if (messages == null) {
             LOG.warn("Reddit returned null for messages!");
-            return;
+            return false;
         }
 
         for (Message message : messages) {
@@ -236,7 +236,7 @@ public class RedditServiceImpl implements RedditService {
             if (StringUtils.isBlank(username) || (StringUtils.isBlank(subject) && StringUtils.isBlank(body))) {
                 // Not enough info to either reply or tell if this is subscribe/unsubscribe request, bail
                 LOG.warn("Not enough info in message to process intent!: username: '%s', subject: '%s', body: '%s'", username, subject, body);
-                return;
+                return true;
             }
 
             username = username.trim();
@@ -264,7 +264,7 @@ public class RedditServiceImpl implements RedditService {
             } else {
                 LOG.info("Message does not contain either subscribe/unscubscribe, ignoring.");
                 markMessageRead(message);
-                return;
+                return true;
             }
             user.setSubscribed(isSubscribing);
 
@@ -278,6 +278,14 @@ public class RedditServiceImpl implements RedditService {
             markMessageRead(message);
 
         }//for
+
+        return true;
+    }
+
+
+    @Override
+    public int getMaxAuthAttempts() {
+        return getAuthService().getMaxAuthAttempts();
     }
 
 

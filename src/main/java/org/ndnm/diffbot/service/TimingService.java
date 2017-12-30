@@ -1,27 +1,20 @@
 package org.ndnm.diffbot.service;
 
-import org.ndnm.diffbot.model.AuthPollingTime;
-
 public interface TimingService {
-    long getAuthSleepIntervalInMillis();
 
-    long getDiffPollingIntervalInMillis();
+    void saveNewAuthPollingTime(boolean success);
 
-    long getRedditPollingIntervalInMillis();
+    void saveNewUrlPollingTime(boolean success);
 
-    long getOauthRefreshIntervalInMillis();
-
-    long getMainLoopIntervalInMillis();
-
-    int getMaxAuthAttempts();
-
-    void saveAuthPollingTime(AuthPollingTime time);
-
-    AuthPollingTime getLastSuccessfulAuth();
+    void saveNewRedditPollingTime(boolean success);
 
     boolean isTimeToRefreshAuth();
 
     boolean isTimeToCheckRedditMail();
 
     boolean isTimeToProcessDiffUrls();
+
+    long getMainLoopIntervalInMillis();
+
+    long getAuthSleepIntervalInMillis();
 }

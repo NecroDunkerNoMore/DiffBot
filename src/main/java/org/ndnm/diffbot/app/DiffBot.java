@@ -81,11 +81,13 @@ public class DiffBot implements HealthCheckableService {
         while (!killSwitchClick) {
 
             if (getTimingService().isTimeToProcessDiffUrls()) {
-                processDiffUrls();
+                boolean success = processDiffUrls();
+                getTimingService().saveNewUrlPollingTime(success);
             }
 
             if (getTimingService().isTimeToCheckRedditMail()) {
-                getRedditService().processMail();
+                boolean success = getRedditService().processMail();
+                getTimingService().saveNewRedditPollingTime(success);
             }
 
             // OAuth token needs refreshing periodically
@@ -106,7 +108,7 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private void processDiffUrls() {
+    private boolean processDiffUrls() {
         LOG.info("--------------------------------------------------------------------------------");
         LOG.info("Pulling all DiffUrls to iterate over...");
         List<DiffUrl> diffUrls = getDiffUrlService().findAll();
@@ -152,6 +154,7 @@ public class DiffBot implements HealthCheckableService {
         }//for
 
         LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
+        return true;
     }
 
 
@@ -169,8 +172,8 @@ public class DiffBot implements HealthCheckableService {
         attempts++;
 
         while (!success) {
-            if (attempts >= getTimingService().getMaxAuthAttempts()) {
-                LOG.fatal("Could not authenticate before exhausting %d attempts, exiting.", getTimingService().getMaxAuthAttempts());
+            if (attempts >= getRedditService().getMaxAuthAttempts()) {
+                LOG.fatal("Could not authenticate before exhausting %d attempts, exiting.", getRedditService().getMaxAuthAttempts());
                 killSwitchClick = true;
                 return;
             }
@@ -184,9 +187,6 @@ public class DiffBot implements HealthCheckableService {
             }
         }
     }
-
-
-
 
 
     private int notifySubscribers(String postUrl) {
@@ -207,8 +207,7 @@ public class DiffBot implements HealthCheckableService {
         boolean success = getRedditService().performAuth();
         success &= isAuthenticated();
 
-        time.setSuccess(success);
-        getTimingService().saveAuthPollingTime(time);
+        getTimingService().saveNewAuthPollingTime(success);
 
         LOG.info("Authentication attempt was successful: %s", success);
         return success;
