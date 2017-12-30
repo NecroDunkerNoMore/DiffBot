@@ -116,15 +116,45 @@ public class DiffBotConfiguration {
     }
 
 
-    @Bean(name = "botsRedditUsername")
-    public String getBotsRedditUsername() {
-        return environment.getRequiredProperty("reddit.username");
-    }
-
-
     @Bean(name = "diffBotVersion")
     public String getDiffbotVersion() {
         return environment.getRequiredProperty("bot.version");
+    }
+
+
+    @Bean(name = "authSleepIntervalInMillis")
+    public long getAuthSleepIntervalInMillis() {
+        return Long.parseLong(environment.getRequiredProperty("auth.sleep.interval"));
+    }
+
+
+    @Bean(name = "diffPollingIntervalInMillis")
+    public long getDiffPollingIntervalInMillis() {
+        return Long.parseLong(environment.getRequiredProperty("diff.polling.interval"));
+    }
+
+
+    @Bean(name = "redditPollingIntervalInMillis")
+    public long getRedditPollingIntervalInMillis() {
+        return Long.parseLong(environment.getRequiredProperty("reddit.polling.interval"));
+    }
+
+
+    @Bean(name = "oauthRefreshIntervalInMillis")
+    public long getOauthRefreshIntervalInMillis() {
+        return Long.parseLong(environment.getRequiredProperty("oauth.polling.interval"));
+    }
+
+
+    @Bean(name = "mainLoopIntervalInMillis")
+    public long getMainLoopIntervalInMillis() {
+        return Long.parseLong(environment.getRequiredProperty("main.loop.polling.interval"));
+    }
+
+
+    @Bean(name = "maxAuthAttempts")
+    public int getMaxAuthAttempts() {
+        return Integer.parseInt(environment.getRequiredProperty("max.auth.attempts"));
     }
 
 
