@@ -31,16 +31,13 @@ import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.diff.HtmlSnapshot;
-import org.ndnm.diffbot.service.AuthPollingTimeService;
 import org.ndnm.diffbot.service.DiffResultService;
 import org.ndnm.diffbot.service.DiffUrlService;
 import org.ndnm.diffbot.service.HealthCheckableService;
 import org.ndnm.diffbot.service.HtmlFetchingService;
 import org.ndnm.diffbot.service.HtmlSnapshotService;
-import org.ndnm.diffbot.service.RedditPollingTimeService;
 import org.ndnm.diffbot.service.RedditService;
 import org.ndnm.diffbot.service.TimingService;
-import org.ndnm.diffbot.service.UrlPollingTimeService;
 import org.ndnm.diffbot.spring.SpringContext;
 import org.ndnm.diffbot.util.DiffGenerator;
 import org.ndnm.diffbot.util.TimeUtils;
@@ -53,9 +50,6 @@ public class DiffBot implements HealthCheckableService {
     private static final Logger LOG = LogManager.getLogger(DiffBot.class);
 
     private final RedditService redditService;
-    private final RedditPollingTimeService redditPollingTimeService;
-    private final AuthPollingTimeService authPollingTimeService;
-    private final UrlPollingTimeService urlPollingTimeService;
     private final DiffResultService diffResultService;
     private final HtmlFetchingService htmlFetchingService;
     private final DiffUrlService diffUrlService;
@@ -65,17 +59,14 @@ public class DiffBot implements HealthCheckableService {
 
 
     @Autowired
-    public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditPollingTimeService redditPollingTimeService,
-                   AuthPollingTimeService authPollingTimeService, HtmlFetchingService htmlFetchingService, DiffUrlService diffUrlService,
-                   HtmlSnapshotService htmlSnapshotService, UrlPollingTimeService urlPollingTimeService, TimingService timingService) {
+    public DiffBot(RedditService redditService, DiffResultService diffResultService,
+                   HtmlFetchingService htmlFetchingService, DiffUrlService diffUrlService,
+                   HtmlSnapshotService htmlSnapshotService, TimingService timingService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
-        this.redditPollingTimeService = redditPollingTimeService;
-        this.authPollingTimeService = authPollingTimeService;
         this.htmlFetchingService = htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
-        this.urlPollingTimeService = urlPollingTimeService;
         this.timingService = timingService;
         this.killSwitchClick = false;
     }
@@ -89,16 +80,16 @@ public class DiffBot implements HealthCheckableService {
 
         while (!killSwitchClick) {
 
-            if (isTimeToProcessDiffUrls()) {
+            if (getTimingService().isTimeToProcessDiffUrls()) {
                 processDiffUrls();
             }
 
-            if (isTimeToCheckRedditMail()) {
+            if (getTimingService().isTimeToCheckRedditMail()) {
                 getRedditService().processMail();
             }
 
             // OAuth token needs refreshing periodically
-            if (isTimeToRefreshAuth()) {
+            if (getTimingService().isTimeToRefreshAuth()) {
                 retryAuthTillSuccess();
             }
 
@@ -112,22 +103,6 @@ public class DiffBot implements HealthCheckableService {
 
         }
 
-    }
-
-
-    private boolean isTimeToCheckRedditMail() {
-        long lastPollTime = getRedditPollingTimeService().getLastPollingTime().getDate().getTime();
-        long now = TimeUtils.getTimeGmt().getTime();
-
-        return (now - lastPollTime) >= getTimingService().getRedditPollingIntervalInMillis();
-    }
-
-
-    private boolean isTimeToProcessDiffUrls() {
-        long lastSuccessfulPollTime = getUrlPollingTimeService().getLastPollingTime().getDate().getTime();
-        long now = TimeUtils.getTimeGmt().getTime();
-
-        return (now - lastSuccessfulPollTime) >= getTimingService().getDiffPollingIntervalInMillis();
     }
 
 
@@ -211,13 +186,7 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private boolean isTimeToRefreshAuth() {
-        AuthPollingTime lastAuthTime = getAuthPollingTimeService().getLastSuccessfulAuth();
-        long now = TimeUtils.getTimeGmt().getTime();
-        long lastAuth = lastAuthTime.getDate().getTime();
 
-        return (now - lastAuth) >= getTimingService().getOauthRefreshIntervalInMillis();
-    }
 
 
     private int notifySubscribers(String postUrl) {
@@ -239,7 +208,7 @@ public class DiffBot implements HealthCheckableService {
         success &= isAuthenticated();
 
         time.setSuccess(success);
-        getAuthPollingTimeService().save(time);
+        getTimingService().saveAuthPollingTime(time);
 
         LOG.info("Authentication attempt was successful: %s", success);
         return success;
@@ -262,16 +231,6 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private RedditPollingTimeService getRedditPollingTimeService() {
-        return redditPollingTimeService;
-    }
-
-
-    private AuthPollingTimeService getAuthPollingTimeService() {
-        return authPollingTimeService;
-    }
-
-
     private RedditService getRedditService() {
         return redditService;
     }
@@ -289,11 +248,6 @@ public class DiffBot implements HealthCheckableService {
 
     private HtmlSnapshotService getHtmlSnapshotService() {
         return htmlSnapshotService;
-    }
-
-
-    private UrlPollingTimeService getUrlPollingTimeService() {
-        return urlPollingTimeService;
     }
 
 
