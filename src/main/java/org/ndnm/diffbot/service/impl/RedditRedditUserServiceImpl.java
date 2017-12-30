@@ -30,8 +30,8 @@ public class RedditRedditUserServiceImpl implements RedditUserService {
 
 
     @Override
-    public List<RedditUser> getAllNonBlacklistedUsers() {
-        return dao.getAllNonBlacklistedUsers();
+    public List<RedditUser> getAllNonBlacklistedSubscribers() {
+        return dao.getAllNonBlacklistedSubscribers();
     }
 
 

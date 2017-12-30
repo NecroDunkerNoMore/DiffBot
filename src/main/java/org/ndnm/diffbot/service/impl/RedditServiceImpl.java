@@ -23,8 +23,10 @@ package org.ndnm.diffbot.service.impl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.RedditUser;
@@ -33,6 +35,7 @@ import org.ndnm.diffbot.service.AuthService;
 import org.ndnm.diffbot.service.RedditService;
 import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.util.RedditPostFormatter;
+import org.ndnm.diffbot.util.TimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -193,7 +196,7 @@ public class RedditServiceImpl implements RedditService {
     public int notifySubscribersOfPost(String postUrl) {
         int count = 0;
 
-        List<RedditUser> redditSubscribers = getRedditUserService().getAllNonBlacklistedUsers();
+        List<RedditUser> redditSubscribers = getRedditUserService().getAllNonBlacklistedSubscribers();
         for (RedditUser user : redditSubscribers) {
             String to = user.getUsername();
             String subject = "TSCC Essays Have Changed.";
@@ -214,6 +217,67 @@ public class RedditServiceImpl implements RedditService {
         }//for
 
         return count;
+    }
+
+
+    @Override
+    public void processMail() {
+        Listing<Message> messages = getUnreadMessages();
+        if (messages == null) {
+            LOG.warn("Reddit returned null for messages!");
+            return;
+        }
+
+        for (Message message : messages) {
+            String username = message.getAuthor();
+            String subject = message.getSubject();
+            String body = message.getBody();
+
+            if (StringUtils.isBlank(username) || (StringUtils.isBlank(subject) && StringUtils.isBlank(body))) {
+                // Not enough info to either reply or tell if this is subscribe/unsubscribe request, bail
+                LOG.warn("Not enough info in message to process intent!: username: '%s', subject: '%s', body: '%s'", username, subject, body);
+                return;
+            }
+
+            username = username.trim();
+            subject = subject.trim();
+            body = body.trim().toLowerCase();
+
+            LOG.info("Found new reddit message: username: '%s', subject: '%s', body: '%s'", username, subject, body);
+
+            RedditUser user = getRedditUserService().getRedditUserbyUsername(username);
+            boolean isNewUser = (user == null);
+            if (isNewUser) {
+                user = new RedditUser();
+                user.setUsername(username);
+                Date dateCreated = TimeUtils.getTimeGmt();
+                user.setDateCreated(dateCreated);
+            }
+
+            boolean isSubscribing;
+            if (subject.startsWith("subscribe")) {
+                LOG.info("User is subscribing: %s", username);
+                isSubscribing = true;
+            } else if (body.startsWith("unsubscribe")) {
+                LOG.info("User is unsubscribing: %s", username);
+                isSubscribing = false;
+            } else {
+                LOG.info("Message does not contain either subscribe/unscubscribe, ignoring.");
+                markMessageRead(message);
+                return;
+            }
+            user.setSubscribed(isSubscribing);
+
+            if (isNewUser) {
+                getRedditUserService().save(user);
+            } else {
+                getRedditUserService().update(user);
+            }
+
+            replyToMessage(user, isSubscribing);
+            markMessageRead(message);
+
+        }//for
     }
 
 

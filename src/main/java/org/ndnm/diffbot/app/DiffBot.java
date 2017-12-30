@@ -27,7 +27,6 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.AuthPollingTime;
-import org.ndnm.diffbot.model.RedditUser;
 import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
@@ -40,7 +39,6 @@ import org.ndnm.diffbot.service.HtmlFetchingService;
 import org.ndnm.diffbot.service.HtmlSnapshotService;
 import org.ndnm.diffbot.service.RedditPollingTimeService;
 import org.ndnm.diffbot.service.RedditService;
-import org.ndnm.diffbot.service.RedditUserService;
 import org.ndnm.diffbot.service.TimingService;
 import org.ndnm.diffbot.service.UrlPollingTimeService;
 import org.ndnm.diffbot.spring.SpringContext;
@@ -49,16 +47,12 @@ import org.ndnm.diffbot.util.TimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import net.dean.jraw.models.Listing;
-import net.dean.jraw.models.Message;
-
 
 @Component
 public class DiffBot implements HealthCheckableService {
     private static final Logger LOG = LogManager.getLogger(DiffBot.class);
 
     private final RedditService redditService;
-    private final RedditUserService redditUserService;
     private final RedditPollingTimeService redditPollingTimeService;
     private final AuthPollingTimeService authPollingTimeService;
     private final UrlPollingTimeService urlPollingTimeService;
@@ -71,16 +65,14 @@ public class DiffBot implements HealthCheckableService {
 
 
     @Autowired
-    public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditUserService redditUserService,
-                   RedditPollingTimeService redditPollingTimeService, AuthPollingTimeService authPollingTimeService, HtmlFetchingService htmlFetchingService,
-                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService, UrlPollingTimeService urlPollingTimeService,
-                   TimingService timingService) {
+    public DiffBot(RedditService redditService, DiffResultService diffResultService, RedditPollingTimeService redditPollingTimeService,
+                   AuthPollingTimeService authPollingTimeService, HtmlFetchingService htmlFetchingService, DiffUrlService diffUrlService,
+                   HtmlSnapshotService htmlSnapshotService, UrlPollingTimeService urlPollingTimeService, TimingService timingService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
-        this.redditUserService = redditUserService;
         this.redditPollingTimeService = redditPollingTimeService;
         this.authPollingTimeService = authPollingTimeService;
-        this.htmlFetchingService =  htmlFetchingService;
+        this.htmlFetchingService = htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
         this.urlPollingTimeService = urlPollingTimeService;
@@ -102,7 +94,7 @@ public class DiffBot implements HealthCheckableService {
             }
 
             if (isTimeToCheckRedditMail()) {
-                processRedditMail();
+                getRedditService().processMail();
             }
 
             // OAuth token needs refreshing periodically
@@ -111,7 +103,7 @@ public class DiffBot implements HealthCheckableService {
             }
 
             try {
-                LOG.info("Sleeping for %d seconds...", getTimingService().getMainLoopIntervalInMillis()/1000);
+                LOG.info("Sleeping for %d seconds...", getTimingService().getMainLoopIntervalInMillis() / 1000);
                 Thread.sleep(getTimingService().getMainLoopIntervalInMillis());
                 LOG.info("Awake now.");
             } catch (InterruptedException e) {
@@ -120,36 +112,6 @@ public class DiffBot implements HealthCheckableService {
 
         }
 
-    }
-
-
-    private void processRedditMail() {
-        Listing<Message> messages = getRedditService().getUnreadMessages();
-        for (Message message : messages) {
-            String body = message.getBody();
-            String username = message.getAuthor();
-            if (body.trim().toLowerCase().startsWith("subscribe")) {
-                Date dateCreated = TimeUtils.getTimeGmt();
-
-                RedditUser user = new RedditUser();
-                user.setUsername(username);
-                user.setDateCreated(dateCreated);
-                getRedditUserService().save(user);
-
-                getRedditService().replyToMessage(user, true);
-            } else if (body.trim().toLowerCase().startsWith("unsubscribe")) {
-                RedditUser user = getRedditUserService().getRedditUserbyUsername(username);
-                if (user != null) {
-                    user.setSubscribed(false);
-                    getRedditUserService().save(user);
-
-                    getRedditService().replyToMessage(user, false);
-                }
-            }
-
-            getRedditService().markMessageRead(message);
-
-        }//for
     }
 
 
@@ -179,7 +141,7 @@ public class DiffBot implements HealthCheckableService {
             LOG.info("----------------------------------------");
             LOG.info("Processing DiffUrl: %s", diffUrl.getSourceUrl());
 
-            HtmlSnapshot lastHtmlSnapshot  = getHtmlSnapshotService().findLatest(diffUrl);
+            HtmlSnapshot lastHtmlSnapshot = getHtmlSnapshotService().findLatest(diffUrl);
             if (lastHtmlSnapshot == null) {
                 LOG.info("Saving initial HtmlSnapshot for DiffUrl: '%s': ", diffUrl.getSourceUrl());
                 processFirstTimeHtmlSnapshot(diffUrl);
@@ -216,7 +178,6 @@ public class DiffBot implements HealthCheckableService {
 
         LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
     }
-
 
 
     private void processFirstTimeHtmlSnapshot(DiffUrl diffUrl) {
@@ -298,11 +259,6 @@ public class DiffBot implements HealthCheckableService {
 
     private DiffResultService getDiffResultService() {
         return diffResultService;
-    }
-
-
-    private RedditUserService getRedditUserService() {
-        return redditUserService;
     }
 
 

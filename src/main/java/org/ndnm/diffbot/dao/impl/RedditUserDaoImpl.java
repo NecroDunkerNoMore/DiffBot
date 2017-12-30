@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RedditUserDaoImpl extends AbstractDao<BigInteger, RedditUser> implements RedditUserDao {
     private static final String SELECT_BY_USERNAME = "SELECT u FROM RedditUser u where username = :username";
-    private static final String SELECT_BY_ALL_NON_BLACKLISTED_USERS = "select u from RedditUser u where blacklisted = false";
+    private static final String SELECT_BY_ALL_NON_BLACKLISTED_SUBSCRIBERS = "select u from RedditUser u where subscribed = true and blacklisted = false";
 
 
     @Override
@@ -65,16 +65,16 @@ public class RedditUserDaoImpl extends AbstractDao<BigInteger, RedditUser> imple
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<RedditUser> getAllNonBlacklistedUsers() {
-        List<RedditUser> allNonblacklistedUsers = getEntityManager()
-                .createQuery(SELECT_BY_ALL_NON_BLACKLISTED_USERS)
+    public List<RedditUser> getAllNonBlacklistedSubscribers() {
+        List<RedditUser> subscribers = getEntityManager()
+                .createQuery(SELECT_BY_ALL_NON_BLACKLISTED_SUBSCRIBERS)
                 .getResultList();
 
-        if (allNonblacklistedUsers == null || allNonblacklistedUsers.size() == 0) {
+        if (subscribers == null || subscribers.size() == 0) {
             return new ArrayList<>();
         }
 
-        return allNonblacklistedUsers;
+        return subscribers;
     }
 
 }

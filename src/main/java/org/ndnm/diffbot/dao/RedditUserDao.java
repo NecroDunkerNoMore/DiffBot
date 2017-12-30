@@ -18,6 +18,5 @@ public interface RedditUserDao {
 
     void update(RedditUser redditUser);
 
-    @SuppressWarnings("unchecked")
-    List<RedditUser> getAllNonBlacklistedUsers();
+    List<RedditUser> getAllNonBlacklistedSubscribers();
 }

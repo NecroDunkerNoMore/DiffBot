@@ -19,5 +19,6 @@ public interface RedditUserService {
 
     boolean isUserBlacklisted(String username);
 
-    List<RedditUser> getAllNonBlacklistedUsers();
+    List<RedditUser> getAllNonBlacklistedSubscribers();
+
 }

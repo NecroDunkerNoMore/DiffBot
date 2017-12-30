@@ -41,4 +41,6 @@ public interface RedditService extends HealthCheckableService {
     void replyToMessage(RedditUser redditUser, boolean isSubscribed);
 
     int notifySubscribersOfPost(String postUrl);
+
+    void processMail();
 }
