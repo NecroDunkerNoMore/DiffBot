@@ -41,6 +41,7 @@ public class DbDataLoader {
         bootstrapDb();
         loadDiffUrls();
         loadPollTimes();
+        loadRedditUsers();
     }
 
 
@@ -69,6 +70,11 @@ public class DbDataLoader {
     }
 
 
+    private void loadRedditUsers() {
+        executeSqlStatements(getRedditUserStatements(), getDataSource());
+    }
+
+
     private List<String> getDiffUrlStatements() {
         return getSqlStatements("src/main/resources/sql/diff_url_t.sql");
     }
@@ -76,6 +82,11 @@ public class DbDataLoader {
 
     private List<String> getPollTimeStatements() {
         return getSqlStatements("src/main/resources/sql/poll_times.sql");
+    }
+
+
+    private List<String> getRedditUserStatements() {
+        return getSqlStatements("src/main/resources/sql/reddit_user_t.sql");
     }
 
 
