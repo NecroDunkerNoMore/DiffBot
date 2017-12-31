@@ -117,7 +117,7 @@ public class RedditServiceImpl implements RedditService {
         try {
             accountManager.reply(submission, commentBody);
         } catch (Exception e) {
-            LOG.error("Could not post reply to summons (url: %d): %s", submission.getUrl(), e.getMessage());
+            LOG.error("Could not self-comment to own post: (url: %s), (error: %s)", submission.getUrl(), e.getMessage());
         }
     }
 

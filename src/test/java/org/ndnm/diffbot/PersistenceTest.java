@@ -28,6 +28,7 @@ import org.ndnm.diffbot.util.TimeUtils;
 public class PersistenceTest extends GeneratorTestBase {
     private int fauxSeconds = 1;
 
+
     @Before
     public void dBsetup() {
         // Reset to clean state before tests run
@@ -108,30 +109,79 @@ public class PersistenceTest extends GeneratorTestBase {
         HtmlSnapshotService htmlSnapshotService = SpringContext.getBean(HtmlSnapshotService.class);
         DiffUrlService diffUrlService = SpringContext.getBean(DiffUrlService.class);
 
-        DiffUrl diffUrl = new DiffUrl("https://example.com");
-        diffUrlService.save(diffUrl);
-        DiffUrl savedDiffUrl = diffUrlService.findById(BigInteger.valueOf(2));
+        DiffUrl diffUrl1 = new DiffUrl("https://example.com/1/");
+        diffUrlService.save(diffUrl1);
+        DiffUrl savedDiffUrl1 = diffUrlService.findById(BigInteger.valueOf(1));
 
         // Save a bunch to ensure we get the latest one next
         for (int i = 0; i < 6; i++) {
-            CaptureType captureType = i% 2 == 0 ? CaptureType.POST_EVENT : CaptureType.PRE_EVENT;
-            HtmlSnapshot htmlSnapshot = getRandomHtmlSnapshot(savedDiffUrl, captureType);
+            CaptureType captureType = i % 2 == 0 ? CaptureType.POST_EVENT : CaptureType.PRE_EVENT;
+            HtmlSnapshot htmlSnapshot = getRandomHtmlSnapshot(savedDiffUrl1, captureType);
             htmlSnapshotService.save(htmlSnapshot);
         }
+
+
+        DiffUrl diffUrl2 = new DiffUrl("https://example.com/2/");
+        diffUrlService.save(diffUrl2);
+        DiffUrl savedDiffUrl2 = diffUrlService.findById(BigInteger.valueOf(2));
+
+        // Save a bunch to ensure we get the latest one next
+        for (int i = 0; i < 6; i++) {
+            CaptureType captureType = i % 2 == 0 ? CaptureType.POST_EVENT : CaptureType.PRE_EVENT;
+            HtmlSnapshot htmlSnapshot = getRandomHtmlSnapshot(savedDiffUrl2, captureType);
+            htmlSnapshotService.save(htmlSnapshot);
+        }
+
 
         // Create a distinct snapshot that's easily recognized.
         String rawHtml = "Latest snapshot here.";
         CaptureType captureType = CaptureType.POST_EVENT;
         Date dateCaptured = TimeUtils.getTimeGmt();
         dateCaptured.setSeconds(dateCaptured.getSeconds() + fauxSeconds++);
-        dateCaptured.setYear(dateCaptured.getYear()+10);
-        HtmlSnapshot htmlSnapshot = new HtmlSnapshot(savedDiffUrl, rawHtml, captureType, dateCaptured);
+        dateCaptured.setYear(dateCaptured.getYear() + 10);
+        HtmlSnapshot htmlSnapshot = new HtmlSnapshot(savedDiffUrl2, rawHtml, captureType, dateCaptured);
         htmlSnapshotService.save(htmlSnapshot);
 
-        HtmlSnapshot latestHtmlSnapshot = htmlSnapshotService.findLatest(savedDiffUrl);
+        HtmlSnapshot latestHtmlSnapshot = htmlSnapshotService.findLatest(savedDiffUrl2);
 
         Assert.assertNotNull("Latest HtmlSnapshot came back null!", latestHtmlSnapshot);
         Assert.assertTrue("Failed to fetch latest HtmlSnapshot!", latestHtmlSnapshot.getRawHtml().equals(htmlSnapshot.getRawHtml()));
+    }
+
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testTwoHtmlSnapshotBug() {
+        // Bug manifests when snapshots are sub-second w/ eachother, so use same date for both
+        Date now = TimeUtils.getTimeGmt();
+
+        HtmlSnapshotService htmlSnapshotService = SpringContext.getBean(HtmlSnapshotService.class);
+        DiffUrlService diffUrlService = SpringContext.getBean(DiffUrlService.class);
+
+        DiffUrl diffUrl1 = new DiffUrl("https://example.com/1/");
+        diffUrlService.save(diffUrl1);
+        DiffUrl savedDiffUrl1 = diffUrlService.findById(BigInteger.valueOf(1));
+
+        CaptureType captureType1 = CaptureType.POST_EVENT;
+        HtmlSnapshot htmlSnapshot1 = getRandomHtmlSnapshot(savedDiffUrl1, captureType1);
+        htmlSnapshot1.setDateCaptured(now);
+        htmlSnapshotService.save(htmlSnapshot1);
+
+
+        DiffUrl diffUrl2 = new DiffUrl("https://example.com/2/");
+        diffUrlService.save(diffUrl2);
+        DiffUrl savedDiffUrl2 = diffUrlService.findById(BigInteger.valueOf(2));
+
+        CaptureType captureType2 = CaptureType.POST_EVENT;
+        HtmlSnapshot htmlSnapshot2 = getRandomHtmlSnapshot(savedDiffUrl2, captureType2);
+        htmlSnapshot2.setRawHtml("This is latest for DiffUrl2");
+        htmlSnapshot2.setDateCaptured(now);
+        htmlSnapshotService.save(htmlSnapshot2);
+
+        HtmlSnapshot latestHtmlSnapshot = htmlSnapshotService.findLatest(savedDiffUrl2);
+
+        Assert.assertNotNull("Latest HtmlSnapshot came back null!", latestHtmlSnapshot);
+        Assert.assertTrue("Failed to fetch latest HtmlSnapshot!", latestHtmlSnapshot.getRawHtml().equals(htmlSnapshot2.getRawHtml()));
     }
 
 
@@ -176,7 +226,6 @@ public class PersistenceTest extends GeneratorTestBase {
         }
 
 
-
     }
 
 
@@ -187,6 +236,7 @@ public class PersistenceTest extends GeneratorTestBase {
 
         return new HtmlSnapshot(diffUrl, rawHtml, captureType, dateCaptured);
     }
+
 
     @SuppressWarnings("deprecation")
     private Date getAnotherFauxDate() {
