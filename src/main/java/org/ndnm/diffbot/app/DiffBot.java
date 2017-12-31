@@ -26,7 +26,6 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.ndnm.diffbot.model.AuthPollingTime;
 import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
@@ -201,8 +200,6 @@ public class DiffBot implements HealthCheckableService {
     private boolean performAuth() {
         LOG.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         LOG.info("Attempting reddit authentication...");
-        AuthPollingTime time = new AuthPollingTime();
-        time.setDate(TimeUtils.getTimeGmt());
 
         boolean success = getRedditService().performAuth();
         success &= isAuthenticated();
@@ -216,7 +213,7 @@ public class DiffBot implements HealthCheckableService {
 
     @Override
     public boolean isHealthy() {
-        return getHtmlFetchingService().isHealthy();
+        return getRedditService().isHealthy() && getHtmlFetchingService().isHealthy();
     }
 
 
