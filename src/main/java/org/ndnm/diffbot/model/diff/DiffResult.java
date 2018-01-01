@@ -22,7 +22,6 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
-import org.ndnm.diffbot.model.ArchivedUrl;
 
 import difflib.Patch;
 
@@ -35,7 +34,6 @@ public class DiffResult implements Serializable {
     private BigInteger id;
     private Date dateCaptured;
     private DiffUrl diffUrl;
-    private ArchivedUrl archivedUrl;
     private DiffPatch diffPatch;
     private List<HtmlSnapshot> htmlSnapshots;
 
@@ -180,18 +178,6 @@ public class DiffResult implements Serializable {
     }
 
 
-    @OneToOne
-    @JoinColumn(name = "archived_url_id")
-    public ArchivedUrl getArchivedUrl() {
-        return archivedUrl;
-    }
-
-
-    public void setArchivedUrl(ArchivedUrl archivedUrl) {
-        this.archivedUrl = archivedUrl;
-    }
-
-
     @Transient
     public List<DiffDelta> getChangeDeltas() {
         return diffPatch.getChangeDeltas();
@@ -225,12 +211,6 @@ public class DiffResult implements Serializable {
     @Transient
     public int getTotalLinesAffected() {
         return getDiffPatch().getTotalLinesAffected();
-    }
-
-
-    public void addArchivedUrl(ArchivedUrl archivedUrl) {
-        archivedUrl.setDiffResult(this);
-        this.archivedUrl = archivedUrl;
     }
 
 }

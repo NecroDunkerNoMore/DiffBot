@@ -158,6 +158,12 @@ public class DiffBotConfiguration {
     }
 
 
+    @Bean(name = "userAgentString")
+    public String getUserAgentString() {
+        return environment.getRequiredProperty("user.agent.string");
+    }
+
+
     private Properties jpaProperties() {
         Properties properties = new Properties();
         properties.put("hibernate.dialect", environment.getRequiredProperty("hibernate.dialect"));

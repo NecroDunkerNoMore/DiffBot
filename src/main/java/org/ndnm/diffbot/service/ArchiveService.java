@@ -1,7 +1,8 @@
 package org.ndnm.diffbot.service;
 
-import org.ndnm.diffbot.model.diff.DiffResult;
+import org.ndnm.diffbot.model.ArchivedUrl;
+import org.ndnm.diffbot.model.diff.DiffUrl;
 
 public interface ArchiveService extends HealthCheckableService {
-    void archive(DiffResult diffResult);
+    ArchivedUrl archive(DiffUrl diffUrl);
 }

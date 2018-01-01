@@ -68,11 +68,11 @@ CREATE TABLE diff_url_t (
 
 CREATE TABLE archived_url_t (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  diff_result_id BIGINT UNSIGNED NOT NULL,
+  diff_url_id    BIGINT UNSIGNED NOT NULL,
   archived_link  TEXT            NOT NULL,
   date_archived  DATETIME,
   PRIMARY KEY (id),
-  FOREIGN KEY result_id_fk (diff_result_id) REFERENCES diff_result_t (id)
+  FOREIGN KEY diff_url_id_fk_idx (diff_url_id) REFERENCES diff_url_t (id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );

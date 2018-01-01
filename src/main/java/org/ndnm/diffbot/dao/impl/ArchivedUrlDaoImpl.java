@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ArchivedUrlDaoImpl extends AbstractDao<BigInteger, ArchivedUrl> implements ArchivedUrlDao {
     private static final String SELECT_ALL_QUERY = "SELECT a FROM ArchivedUrl a ORDER BY A.dateArchived desc";
-    private static final String SELECT_BY_DIFF_URL_FK_QUERY = "SELECT a FROM ArchivedUrl a WHERE a.diffResult.id = :diffResultId ORDER BY a.dateArchived desc";
+    private static final String SELECT_BY_DIFF_URL_FK_QUERY = "SELECT a FROM ArchivedUrl a WHERE a.diffUrl.id = :diffResultId ORDER BY a.dateArchived desc";
 
 
     @SuppressWarnings("unchecked")
@@ -41,6 +41,7 @@ public class ArchivedUrlDaoImpl extends AbstractDao<BigInteger, ArchivedUrl> imp
 
     @Override
     public void save(ArchivedUrl archivedUrl) {
+        archivedUrl = getEntityManager().contains(archivedUrl) ? archivedUrl : getEntityManager().merge(archivedUrl);
         super.persist(archivedUrl);
     }
 

@@ -243,7 +243,8 @@ public class RedditServiceImpl implements RedditService {
             subject = subject.trim();
             body = body.trim().toLowerCase();
 
-            LOG.info("Found new reddit message: username: '%s', subject: '%s', body: '%s'", username, subject, body);
+            String truncatedBody = body.length() > 100 ? body.substring(0, 100) : body;
+            LOG.info("Found new reddit message: username: '%s', subject: '%s', body: '%s'", username, subject, truncatedBody);
 
             RedditUser user = getRedditUserService().getRedditUserbyUsername(username);
             boolean isNewUser = (user == null);

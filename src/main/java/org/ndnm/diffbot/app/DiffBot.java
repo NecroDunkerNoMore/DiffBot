@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.ndnm.diffbot.model.ArchivedUrl;
 import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
@@ -128,6 +129,8 @@ public class DiffBot implements HealthCheckableService {
             if (lastHtmlSnapshot == null) {
                 LOG.info("Saving initial HtmlSnapshot for DiffUrl: '%s': ", diffUrl.getSourceUrl());
                 processFirstTimeHtmlSnapshot(diffUrl);
+                ArchivedUrl archivedUrl = getArchiveService().archive(diffUrl);
+                getArchivedUrlService().save(archivedUrl);
                 continue;
             }
 
@@ -141,29 +144,30 @@ public class DiffBot implements HealthCheckableService {
                 continue;
             }
 
-
+            // Do first in case we tank so we don't lose evidence
             LOG.info("********************************************************************************");
             LOG.info("Saving DiffResult w/ %d deltas from DiffUrl: '%s'", diffResult.getNumDeltas(), diffUrl.getSourceUrl());
             getDiffResultService().save(diffResult);
             LOG.info("Save complete.");
 
-
+            // Now save for posterity
             LOG.info("********************************************************************************");
             LOG.info("Archiving DiffResult w/ with DiffUrl: '%s'", diffUrl.getSourceUrl());
-            getArchiveService().archive(diffResult);
+            ArchivedUrl archivedUrl = getArchiveService().archive(diffUrl);
+            getArchivedUrlService().save(archivedUrl);
             LOG.info("Archiving complete.");
 
-
+            // And publish for all to see TODO: add published flag, try to republish on next start if false
             LOG.info("********************************************************************************");
             LOG.info("Posting DiffResult to reddit...");
             String postUrl = getRedditService().postDiffResult(diffResult);
             LOG.info("Posting complete.");
 
-
+            // Let our subscribers personally know something went down
             LOG.info("********************************************************************************");
             LOG.info("Notifying reddit subscribers...");
             int count = notifySubscribers(postUrl);
-            LOG.info("%d notification sent.", count);
+            LOG.info("%d notification(s) sent.", count);
 
         }//for
 
@@ -228,7 +232,9 @@ public class DiffBot implements HealthCheckableService {
 
     @Override
     public boolean isHealthy() {
-        return getRedditService().isHealthy() && getHtmlFetchingService().isHealthy();
+        return getRedditService().isHealthy()
+                && getHtmlFetchingService().isHealthy()
+                && getArchiveService().isHealthy();
     }
 
 
@@ -264,6 +270,16 @@ public class DiffBot implements HealthCheckableService {
 
     private TimingService getTimingService() {
         return timingService;
+    }
+
+
+    private ArchivedUrlService getArchivedUrlService() {
+        return archivedUrlService;
+    }
+
+
+    private ArchiveService getArchiveService() {
+        return archiveService;
     }
 
 
@@ -308,13 +324,4 @@ public class DiffBot implements HealthCheckableService {
         }//while
     }
 
-
-    public ArchivedUrlService getArchivedUrlService() {
-        return archivedUrlService;
-    }
-
-
-    public ArchiveService getArchiveService() {
-        return archiveService;
-    }
 }

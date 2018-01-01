@@ -2,6 +2,8 @@ package org.ndnm.diffbot.service.impl;
 
 import java.io.IOException;
 
+import javax.annotation.Resource;
+
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -20,6 +22,14 @@ import org.springframework.stereotype.Service;
 public class HtmlFetchingServiceImpl extends HttpConnectionCloser implements HtmlFetchingService {
     private static Logger LOG = LogManager.getLogger(HtmlFetchingServiceImpl.class);
 
+    @Resource(name = "userAgentString")
+    private String userAgentString;
+
+
+    public HtmlFetchingServiceImpl(String userAgentString) {
+        this.userAgentString = userAgentString;
+    }
+
 
     @Override
     public String fetchHtml(DiffUrl diffUrl) {
@@ -29,7 +39,10 @@ public class HtmlFetchingServiceImpl extends HttpConnectionCloser implements Htm
 
     private String fetchHtml(String url) {
         HttpGet getMethod = new HttpGet(url);
-        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        CloseableHttpClient httpClient = HttpClientBuilder
+                .create()
+                .setUserAgent(getUserAgentString())
+                .build();
 
         CloseableHttpResponse response = null;
         try {
@@ -47,9 +60,8 @@ public class HtmlFetchingServiceImpl extends HttpConnectionCloser implements Htm
             // these have been seen in the wild, and confuse the differ
             html = html.replaceAll("[\\p{Co}\\u200B]", "");
 
-
-
             return html;
+
         } catch (HttpResponseException e) {
             LOG.error(e.getMessage());
         } catch (IOException e) {
@@ -75,4 +87,10 @@ public class HtmlFetchingServiceImpl extends HttpConnectionCloser implements Htm
     protected Logger getLog() {
         return LOG;
     }
+
+
+    private String getUserAgentString() {
+        return userAgentString;
+    }
+
 }

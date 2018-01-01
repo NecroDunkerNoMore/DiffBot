@@ -1,12 +1,1 @@
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (1,'https://www.lds.org/topics/first-vision-accounts','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (2,'https://www.lds.org/topics/book-of-mormon-translation','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (3,'https://www.lds.org/topics/book-of-mormon-and-dna-studies','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (4,'https://www.lds.org/topics/race-and-the-priesthood','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (5,'https://www.lds.org/topics/translation-and-historicity-of-the-book-of-abraham','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (6,'https://www.lds.org/topics/plural-marriage-and-families-in-early-utah','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (7,'https://www.lds.org/topics/christians','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (8,'https://www.lds.org/topics/becoming-like-god','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (9,'https://www.lds.org/topics/peace-and-violence-among-19th-century-latter-day-saints','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (10,'https://www.lds.org/topics/the-manifesto-and-the-end-of-plural-marriage','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (11,'https://www.lds.org/topics/joseph-smiths-teachings-about-priesthood-temple-and-women','2017-11-24 12:40:30',1);
-INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (12,'https://www.lds.org/topics/mother-in-heaven','2017-11-24 12:40:30',1);
+INSERT INTO `diff_url_t` (`id`,`source_url`,`date_created`,`active`) VALUES (1,'https://necrodunkernomore.github.io/watched.html','2017-11-24 12:40:30',1);

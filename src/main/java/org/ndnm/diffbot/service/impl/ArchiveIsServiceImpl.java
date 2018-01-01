@@ -30,7 +30,6 @@ import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.ndnm.diffbot.model.ArchivedUrl;
-import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.service.ArchiveService;
 import org.ndnm.diffbot.util.TimeUtils;
@@ -51,10 +50,8 @@ public class ArchiveIsServiceImpl extends HttpConnectionCloser implements Archiv
     private static final String SUBMIT_ID_FORM_KEY = "submitid";
 
 
-
     @Override
-    public void archive(DiffResult diffResult) {
-        DiffUrl diffUrl = diffResult.getDiffUrl();
+    public ArchivedUrl archive(DiffUrl diffUrl) {
 
         LOG.info("Attempting to archive link: %s", diffUrl.getSourceUrl());
         CloseableHttpClient client = HttpClientBuilder.create().build();
@@ -70,12 +67,13 @@ public class ArchiveIsServiceImpl extends HttpConnectionCloser implements Archiv
                 archivedUrl = createArchivedUrl(archivedLink, diffUrl);
             }
 
+            archivedUrl.setDiffUrl(diffUrl);
+
         } finally {
             closeHttpObjects(client);
         }
 
-        archivedUrl.addDiffResult(diffResult);
-        diffResult.addArchivedUrl(archivedUrl);
+        return archivedUrl;
     }
 
 

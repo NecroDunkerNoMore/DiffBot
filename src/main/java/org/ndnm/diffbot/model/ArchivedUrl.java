@@ -4,27 +4,27 @@ package org.ndnm.diffbot.model;
 import java.math.BigInteger;
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
-import org.ndnm.diffbot.model.diff.DiffResult;
-
+import org.ndnm.diffbot.model.diff.DiffUrl;
 
 
 @Entity
 @Table(name = "archived_url_t")
 public class ArchivedUrl {
     private BigInteger id;
-    private DiffResult diffResult;
+    private DiffUrl diffUrl;
     private String archivedLink;
     private Date dateArchived;
 
@@ -34,8 +34,8 @@ public class ArchivedUrl {
     }
 
 
-    public ArchivedUrl(DiffResult diffResult) {
-        this.diffResult = diffResult;
+    public ArchivedUrl(DiffUrl diffUrl) {
+        this.diffUrl = diffUrl;
     }
 
 
@@ -52,15 +52,15 @@ public class ArchivedUrl {
     }
 
 
-    @OneToOne(targetEntity = DiffResult.class)
-    @JoinColumn(name = "diff_result_id", nullable = false)
-    public DiffResult getDiffResult() {
-        return diffResult;
+    @ManyToOne(targetEntity = DiffUrl.class, cascade = CascadeType.ALL)
+    @JoinColumn(name = "diff_url_id", nullable = false)
+    public DiffUrl getDiffUrl() {
+        return diffUrl;
     }
 
 
-    public void setDiffResult(DiffResult diffResult) {
-        this.diffResult = diffResult;
+    public void setDiffUrl(DiffUrl diffUrl) {
+        this.diffUrl = diffUrl;
     }
 
 
@@ -89,11 +89,11 @@ public class ArchivedUrl {
 
     @Transient
     public String getSourceUrl() {
-        return diffResult != null ? diffResult.getDiffUrl().getSourceUrl() : null;
+        return diffUrl != null ? diffUrl.getSourceUrl() : null;
     }
 
 
-    public void addDiffResult(DiffResult diffResult) {
-        this.diffResult = diffResult;
+    public void addDiffUrl(DiffUrl diffUrl) {
+        this.diffUrl = diffUrl;
     }
 }
