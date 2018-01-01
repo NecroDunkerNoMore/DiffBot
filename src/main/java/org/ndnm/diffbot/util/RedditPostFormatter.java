@@ -1,10 +1,17 @@
 package org.ndnm.diffbot.util;
 
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
+import org.ndnm.diffbot.model.ArchivedUrl;
 import org.ndnm.diffbot.model.diff.DiffDelta;
 import org.ndnm.diffbot.model.diff.DiffLine;
 import org.ndnm.diffbot.model.diff.DiffResult;
+import org.ndnm.diffbot.service.ArchivedUrlService;
 import org.springframework.stereotype.Component;
 
 
@@ -20,7 +27,13 @@ public class RedditPostFormatter {
 
     @Resource(name = "diffBotVersion")
     private String diffBotVersion;
+    private ArchivedUrlService archivedUrlService;
     private static StringBuilder stringBuilder = new StringBuilder();
+
+
+    public RedditPostFormatter(ArchivedUrlService archivedUrlService) {
+        this.archivedUrlService = archivedUrlService;
+    }
 
 
     public String formatPostTitle(DiffResult diffResult) {
@@ -47,10 +60,39 @@ public class RedditPostFormatter {
 
 
     private void generateHeader(DiffResult diffResult) {
+
+
         String dateString = TimeUtils.formatGmt(diffResult.getDateCaptured());
         addLineWithTwoNewlines(REDDIT_LINE);
         addLineWithTwoNewlines(String.format("#%s: %d Deltas(s) from: %s", dateString, diffResult.getNumDeltas(), diffResult.getDiffUrl().getSourceUrl()));
+
+        String archiveHistoryLine = getArchiveLinkLine(diffResult);
+        if (StringUtils.isNotBlank(archiveHistoryLine)) {
+            addLineWithOneNewline(archiveHistoryLine);
+        }
+
         addLineWithTwoNewlines(REDDIT_LINE);
+    }
+
+
+    private String getArchiveLinkLine(DiffResult diffResult) {
+        // This is sorted by date in descending order by the DAO
+        List<ArchivedUrl> archivedUrls = getArchivedUrlService().findAllByDiffUrlId(diffResult.getDiffUrl().getId());
+
+        int numArchivesMade = archivedUrls.size();
+        if (numArchivesMade < 2) {
+            // If we don't have at least 2 page archives, then we don't have anything for
+            // the user to compare -- TODO: Write logic so that when intial HtmlSnapshot
+            //                              is captured, that we trigger an archive too
+            return null;
+        }
+
+        int knownNumberTimesPageHasChanged = numArchivesMade - 1;
+        String lastArchive = archivedUrls.get(archivedUrls.size() - 1).getArchivedLink();
+        String secondToLastArchive = archivedUrls.get(archivedUrls.size() - 2).getArchivedLink();
+
+        return String.format("(%d known times page has changed; [Archive](%s) before last change, [archive](%s) of current page)",
+                knownNumberTimesPageHasChanged, secondToLastArchive, lastArchive);
     }
 
 
@@ -154,5 +196,19 @@ public class RedditPostFormatter {
 
     private String getDiffBotVersion() {
         return diffBotVersion;
+    }
+
+
+    public ArchivedUrlService getArchivedUrlService() {
+        return archivedUrlService;
+    }
+
+    class DateComparator implements Comparator<ArchivedUrl> {
+        @Override
+        public int compare(ArchivedUrl o1, ArchivedUrl o2) {
+            Date dateOne = o1.getDateArchived();
+            Date dateTwo = o2.getDateArchived();
+            return dateOne.compareTo(dateTwo);
+        }
     }
 }

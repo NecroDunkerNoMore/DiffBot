@@ -30,6 +30,8 @@ import org.ndnm.diffbot.model.diff.CaptureType;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
 import org.ndnm.diffbot.model.diff.HtmlSnapshot;
+import org.ndnm.diffbot.service.ArchiveService;
+import org.ndnm.diffbot.service.ArchivedUrlService;
 import org.ndnm.diffbot.service.DiffResultService;
 import org.ndnm.diffbot.service.DiffUrlService;
 import org.ndnm.diffbot.service.HealthCheckableService;
@@ -54,19 +56,24 @@ public class DiffBot implements HealthCheckableService {
     private final DiffUrlService diffUrlService;
     private final HtmlSnapshotService htmlSnapshotService;
     private final TimingService timingService;
+    private final ArchiveService archiveService;
+    private final ArchivedUrlService archivedUrlService;
     private boolean killSwitchClick;
 
 
     @Autowired
     public DiffBot(RedditService redditService, DiffResultService diffResultService,
                    HtmlFetchingService htmlFetchingService, DiffUrlService diffUrlService,
-                   HtmlSnapshotService htmlSnapshotService, TimingService timingService) {
+                   HtmlSnapshotService htmlSnapshotService, TimingService timingService,
+                   ArchiveService archiveService, ArchivedUrlService archivedUrlService) {
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.htmlFetchingService = htmlFetchingService;
         this.diffUrlService = diffUrlService;
         this.htmlSnapshotService = htmlSnapshotService;
         this.timingService = timingService;
+        this.archiveService = archiveService;
+        this.archivedUrlService = archivedUrlService;
         this.killSwitchClick = false;
     }
 
@@ -134,10 +141,18 @@ public class DiffBot implements HealthCheckableService {
                 continue;
             }
 
+
             LOG.info("********************************************************************************");
             LOG.info("Saving DiffResult w/ %d deltas from DiffUrl: '%s'", diffResult.getNumDeltas(), diffUrl.getSourceUrl());
             getDiffResultService().save(diffResult);
             LOG.info("Save complete.");
+
+
+            LOG.info("********************************************************************************");
+            LOG.info("Archiving DiffResult w/ with DiffUrl: '%s'", diffUrl.getSourceUrl());
+            getArchiveService().archive(diffResult);
+            LOG.info("Archiving complete.");
+
 
             LOG.info("********************************************************************************");
             LOG.info("Posting DiffResult to reddit...");
@@ -293,4 +308,13 @@ public class DiffBot implements HealthCheckableService {
         }//while
     }
 
+
+    public ArchivedUrlService getArchivedUrlService() {
+        return archivedUrlService;
+    }
+
+
+    public ArchiveService getArchiveService() {
+        return archiveService;
+    }
 }

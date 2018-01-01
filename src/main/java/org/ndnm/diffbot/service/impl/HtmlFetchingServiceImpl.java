@@ -1,6 +1,5 @@
 package org.ndnm.diffbot.service.impl;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.http.HttpStatus;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class HtmlFetchingServiceImpl implements HtmlFetchingService {
+public class HtmlFetchingServiceImpl extends HttpConnectionCloser implements HtmlFetchingService {
     private static Logger LOG = LogManager.getLogger(HtmlFetchingServiceImpl.class);
 
 
@@ -72,17 +71,8 @@ public class HtmlFetchingServiceImpl implements HtmlFetchingService {
     }
 
 
-    private void closeHttpObjects(Closeable... closeables) {
-        for (Closeable closeable : closeables) {
-            if (closeable != null) {
-                try {
-                    closeable.close();
-                } catch (IOException e) {
-                    LOG.warn("Could not close response/client!: " + e.getMessage());
-                }
-            }
-        }
+    @Override
+    protected Logger getLog() {
+        return LOG;
     }
-
-
 }
