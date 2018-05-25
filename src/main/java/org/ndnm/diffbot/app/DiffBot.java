@@ -24,6 +24,8 @@ package org.ndnm.diffbot.app;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Resource;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.ArchivedUrl;
@@ -51,6 +53,8 @@ import org.springframework.stereotype.Component;
 public class DiffBot implements HealthCheckableService {
     private static final Logger LOG = LogManager.getLogger(DiffBot.class);
 
+    @Resource(name = "isNotifySubscribersEnabled")
+    private final boolean isNotifySubscribersEnabled;
     private final RedditService redditService;
     private final DiffResultService diffResultService;
     private final HtmlFetchingService htmlFetchingService;
@@ -63,10 +67,12 @@ public class DiffBot implements HealthCheckableService {
 
 
     @Autowired
-    public DiffBot(RedditService redditService, DiffResultService diffResultService,
-                   HtmlFetchingService htmlFetchingService, DiffUrlService diffUrlService,
-                   HtmlSnapshotService htmlSnapshotService, TimingService timingService,
-                   ArchiveService archiveService, ArchivedUrlService archivedUrlService) {
+    public DiffBot(boolean isNotifySubscribersEnabled, RedditService redditService,
+                   DiffResultService diffResultService, HtmlFetchingService htmlFetchingService,
+                   DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService,
+                   TimingService timingService, ArchiveService archiveService,
+                   ArchivedUrlService archivedUrlService) {
+        this.isNotifySubscribersEnabled = isNotifySubscribersEnabled;
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.htmlFetchingService = htmlFetchingService;
@@ -208,6 +214,11 @@ public class DiffBot implements HealthCheckableService {
 
 
     private int notifySubscribers(String postUrl) {
+        if (!isNotifySubscribersEnabled) {
+            LOG.info("Notifications are disabled.");
+            return 0;
+        }
+
         LOG.info("Notifying subscribers about DiffResult...");
         int numNotified = getRedditService().notifySubscribersOfPost(postUrl);
         LOG.info("Completed notifying %d subscribers.", numNotified);

@@ -7,6 +7,7 @@ import javax.naming.NamingException;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -161,6 +162,19 @@ public class DiffBotConfiguration {
     @Bean(name = "userAgentString")
     public String getUserAgentString() {
         return environment.getRequiredProperty("user.agent.string");
+    }
+
+
+    @Bean(name="isNotifySubscribersEnabled")
+    public boolean isNotifySubscribersEnabled() {
+        String value = environment.getRequiredProperty("notify.subscribers.enabled");
+        if (StringUtils.isBlank(value)) {
+            return false;
+        } else if (value.toLowerCase().equals("true")) {
+            return true;
+        }
+
+        return false;
     }
 
 
