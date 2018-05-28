@@ -1,5 +1,6 @@
 package org.ndnm.diffbot.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -11,15 +12,30 @@ import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.service.ArchivedUrlService;
 import org.springframework.stereotype.Component;
 
+import com.github.difflib.algorithm.DiffException;
+import com.github.difflib.text.DiffRow;
+import com.github.difflib.text.DiffRowGenerator;
 
+/*
+ * Class uses a StringBuilder to generate each section of a post,
+ * and will reset the builder when the full comment is done being
+ * built.
+ *
+ * New logic will add word-by-word formatting that highlights
+ * changes by applying:
+ * - Change: bold
+ * - Insert: bold
+ * - Delete: strikethough
+ *
+ *
+ */
 @Component
 public class RedditPostFormatter {
-    private static final String FOOTER = "^[FAQ](https://np.reddit.com/r/TheEssaysChanged/wiki/index)&nbsp;| ^[Source&nbsp;Code](https://github.com/NecroDunkerNoMore/DiffBot)&nbsp;| ^[PM&nbsp;Developer](https://www.reddit.com/message/compose?to=NecroDunkerNoMore&subject=NecroDunkerNoMore)&nbsp;| ^v%s";
+    private static final String CHANGE_SECTION_TITLE = "#Change Delta(s)";
+    private static final String INSERT_SECTION_TITLE = "#Insert Delta(s)";
+    private static final String DELETE_SECTION_TITLE = "#Delete Delta(s)";
     private static final String DELTA_SECTION_HEADER = "**(Delta starting at line %d, ending at line %d)**";
-    private static final String CHANGED_LINE_BEFORE_FORMAT = "\\[Before]: `%s`";
-    private static final String CHANGED_LINE_AFTER_FORMAT = "&nbsp;&nbsp;&nbsp;\\[After]: `%s`";
-    private static final String INSERT_LINE_FORMAT = "\\[Inserted]: `%s`";
-    private static final String DELETE_LINE_FORMAT = "\\[Deleted]: `%s`";
+    private static final String FOOTER = "^[FAQ](https://np.reddit.com/r/TheEssaysChanged/wiki/index)&nbsp;| ^[Source&nbsp;Code](https://github.com/NecroDunkerNoMore/DiffBot)&nbsp;| ^[PM&nbsp;Developer](https://www.reddit.com/message/compose?to=NecroDunkerNoMore&subject=NecroDunkerNoMore)&nbsp;| ^v%s";
     private static final String REDDIT_LINE = "-----";
 
     @Resource(name = "diffBotVersion")
@@ -44,12 +60,21 @@ public class RedditPostFormatter {
     public String formatCommentBody(DiffResult diffResult) {
         generateHeader(diffResult);
         generateStatsTable(diffResult);
+        generateFormattingLegend();
         generateChangeDeltaSection(diffResult);
         generateInsertDeltaSection(diffResult);
         generateDeleteDeltaSection(diffResult);
         generateFooter();
 
         String body = stringBuilder.toString();
+
+        // Can only post 10k chars, so avoid posting and not being able to comment
+        if (body.length() > 10*1000) {
+            // TODO: Implement multi-comment to chunk when over 10k
+            stringBuilder = new StringBuilder();
+            throw new RuntimeException("Post exceeds api limit: post.length(): " + body.length());
+        }
+
         stringBuilder = new StringBuilder();
 
         return body;
@@ -88,71 +113,109 @@ public class RedditPostFormatter {
     }
 
 
+    private void generateFormattingLegend() {
+        addLineWithTwoNewlines("## Diff Formatting");
+        addLineWithTwoNewlines("Reddit's markdown is extremely limited, so this bot uses the following formats:");
+        addLineWithTwoNewlines("Normal Text: No change/insert/delete");
+        addLineWithTwoNewlines("Bold Text: **Change/Insert**");
+        addLineWithTwoNewlines("Strikethrough: ~~Delete~~");
+    }
+
+
     private void generateChangeDeltaSection(DiffResult diffResult) {
-        if (diffResult.getChangeDeltas().size() > 0) {
-            addLineWithTwoNewlines("#Change Delta(s)");
-
-            boolean first = true;
-            for (DiffDelta diffDelta : diffResult.getChangeDeltas()) {
-                if (!first) {
-                    addLineWithTwoNewlines("&nbsp;");
-                }
-                first = false;
-
-                addLineWithTwoNewlines(String.format(DELTA_SECTION_HEADER, diffDelta.getStartPosition(), diffDelta.getEndPosition()));
-                for (int i = 0; i < diffDelta.getOriginalLines().size(); i++) {
-                    String originalLine = diffDelta.getOriginalLines().get(i).getLine();
-                    String revisedLine = diffDelta.getRevisedLines().get(i).getLine();
-                    addLineWithTwoNewlines(String.format(CHANGED_LINE_BEFORE_FORMAT, originalLine));
-                    addLineWithTwoNewlines(String.format(CHANGED_LINE_AFTER_FORMAT, revisedLine));
-                }
-
-            }//for
-        }//if
+        generateDeltaSection(diffResult.getChangeDeltas(), CHANGE_SECTION_TITLE);
     }
 
 
     private void generateInsertDeltaSection(DiffResult diffResult) {
-        if (diffResult.getInsertDeltas().size() > 0) {
+        generateDeltaSection(diffResult.getInsertDeltas(), INSERT_SECTION_TITLE);
+    }
+
+
+    private void generateDeleteDeltaSection(DiffResult diffResult) {
+        generateDeltaSection(diffResult.getDeleteDeltas(), DELETE_SECTION_TITLE);
+    }
+
+
+    private void generateDeltaSection(List<DiffDelta> diffDeltas, String title) {
+        if (diffDeltas != null && !diffDeltas.isEmpty()) {
             addLineWithTwoNewlines(REDDIT_LINE);
-            addLineWithTwoNewlines("#Insert Delta(s)");
+            addLineWithTwoNewlines(title);
 
             boolean first = true;
-            for (DiffDelta diffDelta : diffResult.getInsertDeltas()) {
+            for (DiffDelta diffDelta : diffDeltas) {
                 if (!first) {
                     addLineWithTwoNewlines("&nbsp;");
                 }
                 first = false;
 
                 addLineWithTwoNewlines(String.format(DELTA_SECTION_HEADER, diffDelta.getStartPosition(), diffDelta.getEndPosition()));
-                for (DiffLine diffLine : diffDelta.getRevisedLines()) {
-                    addLineWithTwoNewlines(String.format(INSERT_LINE_FORMAT, diffLine.getLine()));
-                }
-
+                generateDiffTableFromLines(diffDelta);
             }//for
         }//if
     }
 
 
-    private void generateDeleteDeltaSection(DiffResult diffResult) {
-        if (diffResult.getDeleteDeltas().size() > 0) {
-            addLineWithTwoNewlines(REDDIT_LINE);
-            addLineWithTwoNewlines("#Delete Delta(s)");
+    /*
+     * A couple of hacks here to get formatting to work across reddit old, reddit new,
+     * and RES:
+     * - For bolding, I had to wrap the tokens in '&shy;' which is a 'soft hyphen'
+     *   that isn't visible, and doesn't change spacing
+     * - I escape all periods, since those broke rendering too
+     */
+    private void generateDiffTableFromLines(DiffDelta diffDelta) {
+        /*
+         * Settings will produce a table with two columns -- first col
+         * is the original line, the second col is the revised row. The
+         * text will be formatted to show deletions as strikethough, and
+         * additions/changes as bold. In the cases of full line
+         * deletion/insertion, one of the rows columns will be empty
+         * to indicate this.
+         */
+        DiffRowGenerator generator = DiffRowGenerator.create()
+                .showInlineDiffs(true)
+                .inlineDiffByWord(true)
+                .ignoreWhiteSpaces(true)
+                .oldTag(f -> "~~")//Strikethrough for deletes
+                .newTag(f -> "&shy;**&shy;")//Bold for inserts
+                .build();
 
-            boolean first = true;
-            for (DiffDelta diffDelta : diffResult.getDeleteDeltas()) {
-                if (!first) {
-                    addLineWithTwoNewlines("&nbsp;");
-                }
-                first = false;
+        // Generator only works with lines as strings
+        List<String> originalLines = getStringListFromDiffLines(diffDelta.getOriginalLines());
+        List<String> revisedLines = getStringListFromDiffLines(diffDelta.getRevisedLines());
 
-                addLineWithTwoNewlines(String.format(DELTA_SECTION_HEADER, diffDelta.getStartPosition(), diffDelta.getEndPosition()));
-                for (DiffLine diffLine : diffDelta.getOriginalLines()) {
-                    addLineWithTwoNewlines(String.format(DELETE_LINE_FORMAT, diffLine.getLine()));
-                }
+        // All prepped, now execute
+        List<DiffRow> rows;
+        try {
+            rows = generator.generateDiffRows(
+                    originalLines,
+                    revisedLines);
+        } catch (DiffException e) {
+            throw new RuntimeException(e);
+        }
 
-            }//for
-        }//if
+        // Add a table header, then each of the formatted lines found
+        // in the delta
+        addLineWithOneNewline("|Original|Revised|");
+        addLineWithOneNewline("|---|---|");
+        for (DiffRow row : rows) {
+            String formattedRow = "|" + row.getOldLine() + "|" + row.getNewLine() + "|";
+            formattedRow = formattedRow.replaceAll("\\.", "\\\\.");//snoodown hack escaping periods
+            addLineWithOneNewline(formattedRow);
+        }
+
+        addLineWithTwoNewlines("&nbsp;");
+
+    }
+
+
+    private List<String> getStringListFromDiffLines(List<DiffLine> diffLines) {
+        List<String> stringList = new ArrayList<>();
+        for (DiffLine diffLine : diffLines) {
+            stringList.add(diffLine.getLine());
+        }
+
+        return stringList;
     }
 
 

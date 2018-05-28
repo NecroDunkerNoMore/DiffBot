@@ -86,6 +86,24 @@ public class RedditServiceImpl implements RedditService {
 
     @Override
     public String postDiffResult(DiffResult diffResult) {
+        /*
+         * TODO: Implement multiple comments when one is over 10k chars
+         *
+         * Bug: reddit api limits a comment on a post to 10k chars; if
+         * we try to comment more, the comment is rejected. This results
+         * in a post being made, but there is no comment with the actual
+         * diffs posted -- end users might think this is a false positive.
+         *
+         * So for now, just skip making the post altogether until we can
+         * implement multi-comments.
+         */
+
+        String commentContent = getCommentContent(diffResult);
+        if (commentContent == null) {
+            return "Did not post, comment went over char limit!";
+        }
+
+
         FluentRedditClient fluentClient = new FluentRedditClient(redditClient);
         SubredditReference subredditReference = fluentClient.subreddit("TheEssaysChanged");
 
@@ -105,17 +123,28 @@ public class RedditServiceImpl implements RedditService {
             throw new RuntimeException("Could not post to redddit: " + e.getExplanation());
         }
 
-        makeCommentOnNewPost(submission, diffResult);
+        makeCommentOnNewPost(submission, commentContent);
 
         return submission.getShortURL();
     }
 
 
-    private void makeCommentOnNewPost(Submission submission, DiffResult diffResult) {
-        String commentBody = redditPostFormatter.formatCommentBody(diffResult);
+    private String getCommentContent(DiffResult diffResult) {
+        String commentContent = null;
+        try {
+            commentContent = redditPostFormatter.formatCommentBody(diffResult);
+        } catch (RuntimeException e) {
+            LOG.error("Could not create comment content: %s", e.getMessage());
+        }
+
+        return commentContent;
+    }
+
+
+    private void makeCommentOnNewPost(Submission submission, String commentContent) {
         AccountManager accountManager = new AccountManager(redditClient);
         try {
-            accountManager.reply(submission, commentBody);
+            accountManager.reply(submission, commentContent);
         } catch (Exception e) {
             LOG.error("Could not self-comment to own post: (url: %s), (error: %s)", submission.getUrl(), e.getMessage());
         }
