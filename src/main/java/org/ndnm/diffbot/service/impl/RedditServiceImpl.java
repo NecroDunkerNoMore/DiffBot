@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.ndnm.diffbot.model.RedditUser;
+import org.ndnm.diffbot.model.diff.DiffDelta;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.service.AuthService;
 import org.ndnm.diffbot.service.RedditService;
@@ -86,24 +87,6 @@ public class RedditServiceImpl implements RedditService {
 
     @Override
     public String postDiffResult(DiffResult diffResult) {
-        /*
-         * TODO: Implement multiple comments when one is over 10k chars
-         *
-         * Bug: reddit api limits a comment on a post to 10k chars; if
-         * we try to comment more, the comment is rejected. This results
-         * in a post being made, but there is no comment with the actual
-         * diffs posted -- end users might think this is a false positive.
-         *
-         * So for now, just skip making the post altogether until we can
-         * implement multi-comments.
-         */
-
-        String commentContent = getCommentContent(diffResult);
-        if (commentContent == null) {
-            return "Did not post, comment went over char limit!";
-        }
-
-
         FluentRedditClient fluentClient = new FluentRedditClient(redditClient);
         SubredditReference subredditReference = fluentClient.subreddit("TheEssaysChanged");
 
@@ -123,25 +106,50 @@ public class RedditServiceImpl implements RedditService {
             throw new RuntimeException("Could not post to redddit: " + e.getExplanation());
         }
 
-        makeCommentOnNewPost(submission, commentContent);
+
+        makeDeltaCommentsOnNewPost(submission, diffResult);
 
         return submission.getShortURL();
     }
 
 
-    private String getCommentContent(DiffResult diffResult) {
+    private String getCommentContent(DiffDelta diffDelta) {
         String commentContent = null;
         try {
-            commentContent = redditPostFormatter.formatCommentBody(diffResult);
+            commentContent = redditPostFormatter.formatDeltaCommentContent(diffDelta);
         } catch (RuntimeException e) {
-            LOG.error("Could not create comment content for DiffResult(id: %d): %s", diffResult.getId(), e.getMessage());
+            LOG.error("Could not create comment content for DiffDelta(id: %d): %s", diffDelta.getId(), e.getMessage());
         }
 
         return commentContent;
     }
 
 
-    private void makeCommentOnNewPost(Submission submission, String commentContent) {
+    private void makeDeltaCommentsOnNewPost(Submission submission, DiffResult diffResult) {
+        // This comment will have stat table and formatting info
+        String headerComment = redditPostFormatter.formatInitialComment(diffResult);
+        makeComment(submission, headerComment);
+
+        int numDeltas = diffResult.getNumDeltas();
+        LOG.info("About to make %d comments for each found delta.");
+
+        // Post all of the found changes
+        loopPostingDeltaComments(submission, diffResult.getChangeDeltas());
+        loopPostingDeltaComments(submission, diffResult.getInsertDeltas());
+        loopPostingDeltaComments(submission, diffResult.getDeleteDeltas());
+    }
+
+
+    private void loopPostingDeltaComments(Submission submission, List<DiffDelta> diffDeltas) {
+        for (DiffDelta delta : diffDeltas) {
+            String commentContent = getCommentContent(delta);
+            LOG.info("Making comment for DiffDelta(id: %d, type, %s)", delta.getId(), delta.getDeltaType());
+            makeComment(submission, commentContent);
+        }
+    }
+
+
+    private void makeComment(Submission submission, String commentContent) {
         AccountManager accountManager = new AccountManager(redditClient);
         try {
             accountManager.reply(submission, commentContent);

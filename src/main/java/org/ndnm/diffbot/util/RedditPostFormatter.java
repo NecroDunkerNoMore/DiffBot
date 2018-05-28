@@ -13,6 +13,7 @@ import org.ndnm.diffbot.service.ArchivedUrlService;
 import org.springframework.stereotype.Component;
 
 import com.github.difflib.algorithm.DiffException;
+import com.github.difflib.patch.DeltaType;
 import com.github.difflib.text.DiffRow;
 import com.github.difflib.text.DiffRowGenerator;
 
@@ -31,9 +32,9 @@ import com.github.difflib.text.DiffRowGenerator;
  */
 @Component
 public class RedditPostFormatter {
-    private static final String CHANGE_SECTION_TITLE = "#Change Delta(s)";
-    private static final String INSERT_SECTION_TITLE = "#Insert Delta(s)";
-    private static final String DELETE_SECTION_TITLE = "#Delete Delta(s)";
+    private static final String CHANGE_SECTION_TITLE = "#Change Delta";
+    private static final String INSERT_SECTION_TITLE = "#Insert Delta";
+    private static final String DELETE_SECTION_TITLE = "#Delete Delta";
     private static final String DELTA_SECTION_HEADER = "**(Delta starting at line %d, ending at line %d)**";
     private static final String FOOTER = "^[FAQ](https://np.reddit.com/r/TheEssaysChanged/wiki/index)&nbsp;| ^[Source&nbsp;Code](https://github.com/NecroDunkerNoMore/DiffBot)&nbsp;| ^[PM&nbsp;Developer](https://www.reddit.com/message/compose?to=NecroDunkerNoMore&subject=NecroDunkerNoMore)&nbsp;| ^v%s";
     private static final String REDDIT_LINE = "-----";
@@ -57,27 +58,38 @@ public class RedditPostFormatter {
     }
 
 
-    public String formatCommentBody(DiffResult diffResult) {
+    public String formatInitialComment(DiffResult diffResult) {
         generateHeader(diffResult);
         generateStatsTable(diffResult);
         generateFormattingLegend();
-        generateChangeDeltaSection(diffResult);
-        generateInsertDeltaSection(diffResult);
-        generateDeleteDeltaSection(diffResult);
         generateFooter();
 
-        String body = stringBuilder.toString();
+        String content = stringBuilder.toString();
+        stringBuilder = new StringBuilder();
+
+        return content;
+    }
+
+
+    public String formatDeltaCommentContent(DiffDelta diffDelta) {
+        if (diffDelta.getDeltaType() == DeltaType.CHANGE) {
+            generateChangeDeltaComment(diffDelta);
+        } else if (diffDelta.getDeltaType() == DeltaType.INSERT) {
+            generateInsertDeltaComment(diffDelta);
+        } else if (diffDelta.getDeltaType() == DeltaType.DELETE) {
+            generateDeleteDeltaSection(diffDelta);
+        }
 
         // Can only post 10k chars, so avoid posting and not being able to comment
-        if (body.length() > 10*1000) {
-            // TODO: Implement multi-comment to chunk when over 10k
+        String commentContent = stringBuilder.toString();
+        if (commentContent.length() > 10 * 1000) {
             stringBuilder = new StringBuilder();
-            throw new RuntimeException("Post exceeds api limit: post.length(): " + body.length());
+            throw new RuntimeException("Comment exceeds api limit: post.length(): " + commentContent.length());
         }
 
         stringBuilder = new StringBuilder();
 
-        return body;
+        return commentContent;
     }
 
 
@@ -122,36 +134,26 @@ public class RedditPostFormatter {
     }
 
 
-    private void generateChangeDeltaSection(DiffResult diffResult) {
-        generateDeltaSection(diffResult.getChangeDeltas(), CHANGE_SECTION_TITLE);
+    private void generateChangeDeltaComment(DiffDelta diffDelta) {
+        generateDeltaComment(diffDelta, CHANGE_SECTION_TITLE);
     }
 
 
-    private void generateInsertDeltaSection(DiffResult diffResult) {
-        generateDeltaSection(diffResult.getInsertDeltas(), INSERT_SECTION_TITLE);
+    private void generateInsertDeltaComment(DiffDelta diffDelta) {
+        generateDeltaComment(diffDelta, INSERT_SECTION_TITLE);
     }
 
 
-    private void generateDeleteDeltaSection(DiffResult diffResult) {
-        generateDeltaSection(diffResult.getDeleteDeltas(), DELETE_SECTION_TITLE);
+    private void generateDeleteDeltaSection(DiffDelta diffDelta) {
+        generateDeltaComment(diffDelta, DELETE_SECTION_TITLE);
     }
 
 
-    private void generateDeltaSection(List<DiffDelta> diffDeltas, String title) {
-        if (diffDeltas != null && !diffDeltas.isEmpty()) {
-            addLineWithTwoNewlines(REDDIT_LINE);
+    private void generateDeltaComment(DiffDelta diffDelta, String title) {
+        if (diffDelta != null && !diffDelta.getDiffLines().isEmpty()) {
             addLineWithTwoNewlines(title);
-
-            boolean first = true;
-            for (DiffDelta diffDelta : diffDeltas) {
-                if (!first) {
-                    addLineWithTwoNewlines("&nbsp;");
-                }
-                first = false;
-
-                addLineWithTwoNewlines(String.format(DELTA_SECTION_HEADER, diffDelta.getStartPosition(), diffDelta.getEndPosition()));
-                generateDiffTableFromLines(diffDelta);
-            }//for
+            addLineWithTwoNewlines(String.format(DELTA_SECTION_HEADER, diffDelta.getStartPosition(), diffDelta.getEndPosition()));
+            generateDiffTableFromLines(diffDelta);
         }//if
     }
 
