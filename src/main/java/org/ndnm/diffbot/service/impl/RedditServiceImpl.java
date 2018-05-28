@@ -134,7 +134,7 @@ public class RedditServiceImpl implements RedditService {
         try {
             commentContent = redditPostFormatter.formatCommentBody(diffResult);
         } catch (RuntimeException e) {
-            LOG.error("Could not create comment content: %s", e.getMessage());
+            LOG.error("Could not create comment content for DiffResult(id: %d): %s", diffResult.getId(), e.getMessage());
         }
 
         return commentContent;
