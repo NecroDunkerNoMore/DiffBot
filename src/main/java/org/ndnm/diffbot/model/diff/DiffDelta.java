@@ -26,7 +26,9 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import difflib.Delta;
+import com.github.difflib.patch.Delta;
+import com.github.difflib.patch.DeltaType;
+
 
 @Entity
 @Table(name = "diff_delta_t")
@@ -241,7 +243,7 @@ public class DiffDelta implements Serializable {
     }
 
 
-    private DeltaType initType(Delta.TYPE internalDeltaType) {
+    private DeltaType initType(com.github.difflib.patch.DeltaType internalDeltaType) {
         switch (internalDeltaType) {
             case INSERT:
                 return DeltaType.INSERT;

@@ -23,7 +23,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
-import difflib.Patch;
+import com.github.difflib.patch.Patch;
 
 
 @Entity

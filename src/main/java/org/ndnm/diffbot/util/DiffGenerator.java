@@ -6,12 +6,14 @@ import java.util.Date;
 import java.util.List;
 
 import org.ndnm.diffbot.model.diff.CaptureType;
-import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 import org.ndnm.diffbot.model.diff.DiffResult;
 import org.ndnm.diffbot.model.diff.DiffUrl;
+import org.ndnm.diffbot.model.diff.HtmlSnapshot;
 
-import difflib.DiffUtils;
-import difflib.Patch;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.algorithm.DiffException;
+import com.github.difflib.patch.Patch;
+
 
 public class DiffGenerator {
     //This regex will eat multiple empty lines, leaving only text-containing ones
@@ -21,7 +23,12 @@ public class DiffGenerator {
         List<String> originalFileLines = Arrays.asList(originalPageAsString.split(MULTI_NEWLINE_REGEX));
         List<String> revisedFileLines = Arrays.asList(revisedPageAsString.split(MULTI_NEWLINE_REGEX));
 
-        Patch patch = DiffUtils.diff(originalFileLines, revisedFileLines);
+        Patch patch;
+        try {
+            patch = DiffUtils.diff(originalFileLines, revisedFileLines);
+        } catch (DiffException e) {
+            throw new RuntimeException(e);
+        }
         List<HtmlSnapshot> htmlSnapshots = createHtmlCaptures(diffUrl, originalPageAsString, revisedPageAsString, dateCaptured);
 
         return new DiffResult(diffUrl, patch, htmlSnapshots, dateCaptured);

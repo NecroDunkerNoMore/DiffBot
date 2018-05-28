@@ -24,8 +24,9 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import difflib.Delta;
-import difflib.Patch;
+import com.github.difflib.patch.Delta;
+import com.github.difflib.patch.Patch;
+
 
 @Entity
 @Table(name = "diff_patch_t")
