@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ndnm.diffbot.model.ArchivedUrl;
 import org.ndnm.diffbot.model.diff.DiffDelta;
 import org.ndnm.diffbot.model.diff.DiffLine;
@@ -133,7 +134,7 @@ public class RedditPostFormatter {
         addLineWithOneNewline("| Unchanged | You can buy anything in this world with money. | You can buy anything in this world with money.|");
         addLineWithOneNewline("| Change | You can buy anything in this world ~~with money~~. | You can buy anything in this world **with beer**.|");
         addLineWithOneNewline("| Insert | | **You can buy anything in this world with beer.** |");
-        addLineWithTwoNewlines("| Delete | ~~You can buy anything in this world with beer.~~ | |");
+        addLineWithTwoNewlines("| Delete | ~~You can buy anything in this world with money.~~ | |");
     }
 
 
@@ -217,7 +218,13 @@ public class RedditPostFormatter {
     private List<String> getStringListFromDiffLines(List<DiffLine> diffLines) {
         List<String> stringList = new ArrayList<>();
         for (DiffLine diffLine : diffLines) {
-            stringList.add(diffLine.getLine().trim());
+            String scrubbedLine = diffLine.getLine().trim();
+            if (StringUtils.isBlank(scrubbedLine)) {
+                // Means we were an emtpy line
+                scrubbedLine = "(\\w*\\n)";
+            }
+
+            stringList.add(scrubbedLine);
         }
 
         return stringList;
