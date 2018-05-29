@@ -50,15 +50,15 @@ public class RedditPostFormatter {
     }
 
 
-    public String formatPostTitle(DiffResult diffResult) {
-        int deltaCount = diffResult.getNumDeltas();
-        String websiteUrl = diffResult.getDiffUrl().getSourceUrl();
-
-        return String.format("Detected %d Deltas for: %s", deltaCount, websiteUrl);
+    public String formatSummaryLine(DiffResult diffResult) {
+        return String.format("%s: %d Deltas(s) from: %s",
+                TimeUtils.formatGmt(diffResult.getDateCaptured()),
+                diffResult.getNumDeltas(),
+                diffResult.getDiffUrl().getSourceUrl());
     }
 
 
-    public String formatInitialComment(DiffResult diffResult) {
+    public String formatPostSelfText(DiffResult diffResult) {
         generateHeader(diffResult);
         generateStatsTable(diffResult);
         generateFormattingLegend();
@@ -94,9 +94,8 @@ public class RedditPostFormatter {
 
 
     private void generateHeader(DiffResult diffResult) {
-        String dateString = TimeUtils.formatGmt(diffResult.getDateCaptured());
         addLineWithTwoNewlines(REDDIT_LINE);
-        addLineWithTwoNewlines(String.format("#%s: %d Deltas(s) from: %s", dateString, diffResult.getNumDeltas(), diffResult.getDiffUrl().getSourceUrl()));
+        addLineWithTwoNewlines("#" + formatSummaryLine(diffResult));
         addLineWithOneNewline(getArchiveLinkLine(diffResult));
         addLineWithOneNewline("");
         addLineWithTwoNewlines(REDDIT_LINE);
@@ -127,10 +126,14 @@ public class RedditPostFormatter {
 
     private void generateFormattingLegend() {
         addLineWithTwoNewlines("## Diff Formatting");
-        addLineWithTwoNewlines("Reddit's markdown is extremely limited, so this bot uses the following formats:");
-        addLineWithTwoNewlines("Normal Text: No change/insert/delete");
-        addLineWithTwoNewlines("Bold Text: **Change/Insert**");
-        addLineWithTwoNewlines("Strikethrough: ~~Delete~~");
+        addLineWithTwoNewlines("Reddit's markdown is extremely limited, so this bot uses bold for change/insert, and strikethrough for deletions:");
+
+        addLineWithOneNewline("|Delta Type | Original | Revised |");
+        addLineWithOneNewline("|---|---|---|");
+        addLineWithOneNewline("| Unchanged | You can buy anything in this world with money. | You can buy anything in this world with money.|");
+        addLineWithOneNewline("| Change | You can buy anything in this world ~~with money~~. | You can buy anything in this world **with beer**.|");
+        addLineWithOneNewline("| Insert | | **You can buy anything in this world with beer.** |");
+        addLineWithTwoNewlines("| Delete | ~~You can buy anything in this world with beer.~~ | |");
     }
 
 
@@ -154,7 +157,7 @@ public class RedditPostFormatter {
             addLineWithTwoNewlines(title);
             addLineWithTwoNewlines(String.format(DELTA_SECTION_HEADER, diffDelta.getStartPosition(), diffDelta.getEndPosition()));
             generateDiffTableFromLines(diffDelta);
-        }//if
+        }
     }
 
 
@@ -214,7 +217,7 @@ public class RedditPostFormatter {
     private List<String> getStringListFromDiffLines(List<DiffLine> diffLines) {
         List<String> stringList = new ArrayList<>();
         for (DiffLine diffLine : diffLines) {
-            stringList.add(diffLine.getLine());
+            stringList.add(diffLine.getLine().trim());
         }
 
         return stringList;

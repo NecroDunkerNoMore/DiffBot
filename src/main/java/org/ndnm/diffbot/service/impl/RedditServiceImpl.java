@@ -21,8 +21,6 @@
 
 package org.ndnm.diffbot.service.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
 import java.util.List;
 
@@ -90,22 +88,15 @@ public class RedditServiceImpl implements RedditService {
         FluentRedditClient fluentClient = new FluentRedditClient(redditClient);
         SubredditReference subredditReference = fluentClient.subreddit("TheEssaysChanged");
 
-        URL submissionLink;
-        try {
-            submissionLink = new URL(diffResult.getDiffUrl().toString());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Bad url: " + e.getMessage());
-        }
-
-        String submissionTitle = redditPostFormatter.formatPostTitle(diffResult);
+        String submissionTitle = redditPostFormatter.formatSummaryLine(diffResult);
+        String postSelfText = redditPostFormatter.formatPostSelfText(diffResult);
 
         Submission submission;
         try {
-            submission = subredditReference.submit(submissionLink, submissionTitle);
+            submission = subredditReference.submit(postSelfText, submissionTitle);
         } catch (ApiException e) {
             throw new RuntimeException("Could not post to redddit: " + e.getExplanation());
         }
-
 
         makeDeltaCommentsOnNewPost(submission, diffResult);
 
@@ -126,12 +117,8 @@ public class RedditServiceImpl implements RedditService {
 
 
     private void makeDeltaCommentsOnNewPost(Submission submission, DiffResult diffResult) {
-        // This comment will have stat table and formatting info
-        String headerComment = redditPostFormatter.formatInitialComment(diffResult);
-        makeComment(submission, headerComment);
-
         int numDeltas = diffResult.getNumDeltas();
-        LOG.info("About to make %d comments for each found delta.");
+        LOG.info("About to make %d comments for each found delta.", numDeltas);
 
         // Post all of the found changes
         loopPostingDeltaComments(submission, diffResult.getChangeDeltas());
@@ -143,7 +130,7 @@ public class RedditServiceImpl implements RedditService {
     private void loopPostingDeltaComments(Submission submission, List<DiffDelta> diffDeltas) {
         for (DiffDelta delta : diffDeltas) {
             String commentContent = getCommentContent(delta);
-            LOG.info("Making comment for DiffDelta(id: %d, type, %s)", delta.getId(), delta.getDeltaType());
+            LOG.info("Making comment for DiffDelta(id: %d, type: %s)", delta.getId(), delta.getDeltaType());
             makeComment(submission, commentContent);
         }
     }
