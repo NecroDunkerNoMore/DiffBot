@@ -217,14 +217,29 @@ public class RedditServiceImpl implements RedditService {
 
 
     @Override
-    public int notifySubscribersOfPost(String postUrl) {
+    public int notifySubscribersOfPosts(List<String> postUrls) {
         int count = 0;
+        if (postUrls == null || postUrls.isEmpty()) {
+            return count;
+        }
 
         List<RedditUser> redditSubscribers = getRedditUserService().getAllNonBlacklistedSubscribers();
         for (RedditUser user : redditSubscribers) {
             String to = user.getUsername();
-            String subject = "TSCC Essays Have Changed.";
-            String body = String.format("The Essays have changed, see the [details here](%s).", postUrl);
+            String subject = String.format("%d TSCC Essays Have Changed.", postUrls.size());
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(String.format("%d Essays have changed, see the details here:", postUrls.size()));
+            stringBuilder.append(System.lineSeparator());
+            stringBuilder.append(System.lineSeparator());
+
+            for (String postUrl : postUrls) {
+                stringBuilder.append("* ").append(postUrl);
+                stringBuilder.append(System.lineSeparator());
+                stringBuilder.append(System.lineSeparator());
+            }
+
+            String body = stringBuilder.toString();
 
             InboxReference inbox = getInbox();
             if (inbox == null) {

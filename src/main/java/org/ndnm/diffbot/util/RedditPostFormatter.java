@@ -52,7 +52,7 @@ public class RedditPostFormatter {
 
 
     public String formatSummaryLine(DiffResult diffResult) {
-        return String.format("%s: %d Deltas(s) from: %s",
+        return String.format("%s: %d Delta(s) from: %s",
                 TimeUtils.formatGmt(diffResult.getDateCaptured()),
                 diffResult.getNumDeltas(),
                 diffResult.getDiffUrl().getSourceUrl());

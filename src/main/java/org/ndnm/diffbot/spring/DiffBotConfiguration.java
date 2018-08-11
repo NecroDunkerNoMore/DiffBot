@@ -177,6 +177,17 @@ public class DiffBotConfiguration {
         return false;
     }
 
+    @Bean(name="isArchivingEnabled")
+    public boolean isArchivingEnabled() {
+        String value = environment.getRequiredProperty("archiving.enabled");
+        if (StringUtils.isBlank(value)) {
+            return false;
+        } else {
+            return value.toLowerCase().equals("true");
+        }
+
+    }
+
 
     private Properties jpaProperties() {
         Properties properties = new Properties();

@@ -21,6 +21,7 @@
 package org.ndnm.diffbot.app;
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -55,6 +56,8 @@ public class DiffBot implements HealthCheckableService {
 
     @Resource(name = "isNotifySubscribersEnabled")
     private final boolean isNotifySubscribersEnabled;
+    @Resource(name = "isArchivingEnabled")
+    private final boolean isArchivingEnabled;
     private final RedditService redditService;
     private final DiffResultService diffResultService;
     private final HtmlFetchingService htmlFetchingService;
@@ -67,12 +70,13 @@ public class DiffBot implements HealthCheckableService {
 
 
     @Autowired
-    public DiffBot(boolean isNotifySubscribersEnabled, RedditService redditService,
+    public DiffBot(boolean isNotifySubscribersEnabled, boolean isArchivingEnabled, RedditService redditService,
                    DiffResultService diffResultService, HtmlFetchingService htmlFetchingService,
                    DiffUrlService diffUrlService, HtmlSnapshotService htmlSnapshotService,
                    TimingService timingService, ArchiveService archiveService,
                    ArchivedUrlService archivedUrlService) {
         this.isNotifySubscribersEnabled = isNotifySubscribersEnabled;
+        this.isArchivingEnabled = isArchivingEnabled;
         this.redditService = redditService;
         this.diffResultService = diffResultService;
         this.htmlFetchingService = htmlFetchingService;
@@ -127,6 +131,8 @@ public class DiffBot implements HealthCheckableService {
         List<DiffUrl> diffUrls = getDiffUrlService().findAll();
         LOG.info("Found %d DiffUrl(s).", diffUrls.size());
 
+
+        List<String> postsToNotifyUsersAbout = new ArrayList<>();
         for (DiffUrl diffUrl : diffUrls) {
             LOG.info("----------------------------------------");
             LOG.info("Processing DiffUrl: %s", diffUrl.getSourceUrl());
@@ -135,8 +141,12 @@ public class DiffBot implements HealthCheckableService {
             if (lastHtmlSnapshot == null) {
                 LOG.info("Saving initial HtmlSnapshot for DiffUrl: '%s': ", diffUrl.getSourceUrl());
                 processFirstTimeHtmlSnapshot(diffUrl);
-                ArchivedUrl archivedUrl = getArchiveService().archive(diffUrl);
-                getArchivedUrlService().save(archivedUrl);
+
+                if (isArchivingEnabled()) {
+                    ArchivedUrl archivedUrl = getArchiveService().archive(diffUrl);
+                    getArchivedUrlService().save(archivedUrl);
+                }
+
                 continue;
             }
 
@@ -159,8 +169,10 @@ public class DiffBot implements HealthCheckableService {
             // Now save for posterity
             LOG.info("********************************************************************************");
             LOG.info("Archiving DiffResult w/ with DiffUrl: '%s'", diffUrl.getSourceUrl());
-            ArchivedUrl archivedUrl = getArchiveService().archive(diffUrl);
-            getArchivedUrlService().save(archivedUrl);
+            if (isArchivingEnabled()) {
+                ArchivedUrl archivedUrl = getArchiveService().archive(diffUrl);
+                getArchivedUrlService().save(archivedUrl);
+            }
             LOG.info("Archiving complete.");
 
             // And publish for all to see TODO: add published flag, try to republish on next start if false
@@ -169,13 +181,16 @@ public class DiffBot implements HealthCheckableService {
             String postUrl = getRedditService().postDiffResult(diffResult);
             LOG.info("Posting complete.");
 
-            // Let our subscribers personally know something went down
-            LOG.info("********************************************************************************");
-            LOG.info("Notifying reddit subscribers...");
-            int count = notifySubscribers(postUrl);
-            LOG.info("%d notification(s) sent.", count);
+            // Notify about _all_ changes at once
+            postsToNotifyUsersAbout.add(postUrl);
 
         }//for
+
+        // Let our subscribers personally know something went down
+        LOG.info("********************************************************************************");
+        LOG.info("Notifying reddit subscribers...");
+        int count = notifySubscribers(postsToNotifyUsersAbout);
+        LOG.info("%d notification(s) sent.", count);
 
         LOG.info("Finshed processing %d DiffUrls.", diffUrls.size());
         return true;
@@ -213,14 +228,14 @@ public class DiffBot implements HealthCheckableService {
     }
 
 
-    private int notifySubscribers(String postUrl) {
+    private int notifySubscribers(List<String> postUrls) {
         if (!isNotifySubscribersEnabled) {
             LOG.info("Notifications are disabled.");
             return 0;
         }
 
         LOG.info("Notifying subscribers about DiffResult...");
-        int numNotified = getRedditService().notifySubscribersOfPost(postUrl);
+        int numNotified = getRedditService().notifySubscribersOfPosts(postUrls);
         LOG.info("Completed notifying %d subscribers.", numNotified);
 
         return numNotified;
@@ -256,6 +271,11 @@ public class DiffBot implements HealthCheckableService {
 
     private DiffResultService getDiffResultService() {
         return diffResultService;
+    }
+
+
+    private boolean isArchivingEnabled() {
+        return isArchivingEnabled;
     }
 
 

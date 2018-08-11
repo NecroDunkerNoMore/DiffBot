@@ -21,6 +21,8 @@
 package org.ndnm.diffbot.service;
 
 
+import java.util.List;
+
 import org.ndnm.diffbot.model.RedditUser;
 import org.ndnm.diffbot.model.diff.DiffResult;
 
@@ -40,7 +42,7 @@ public interface RedditService extends HealthCheckableService {
 
     void replyToMessage(RedditUser redditUser, boolean isSubscribed);
 
-    int notifySubscribersOfPost(String postUrl);
+    int notifySubscribersOfPosts(List<String> postUrls);
 
     boolean processMail();
 
